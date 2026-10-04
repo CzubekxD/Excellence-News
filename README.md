@@ -34,16 +34,14 @@ Domyślnie **Gemini Flash** przez darmowy klucz z [Google AI Studio](https://ais
 
 Instrukcja krok po kroku dla serwera domowego z Proxmoxem: **[docs/pl/wdrozenie-proxmox.md](docs/pl/wdrozenie-proxmox.md)**.
 
-W skrócie (serwer z Dockerem):
+W skrócie (Debian lub Ubuntu, np. VM w Proxmoxie):
 
 ```bash
-git clone https://github.com/CzubekxD/Excellence-News.git
-cd Excellence-News
-cp .env.example .env        # uzupełnij SITE_URL, ADMIN_PASSWORD, sekrety i LLM_API_KEY (klucz Gemini)
-docker compose up -d --build
+curl -fsSL https://raw.githubusercontent.com/CzubekxD/Excellence-News/main/deploy/install.sh -o install.sh
+sudo bash install.sh        # instaluje Dockera, pyta o adres i klucz Gemini, uruchamia serwis
 ```
 
-Strona: `http://adres-serwera:3000`, panel: `/admin`.
+Strona: `http://adres-serwera:3000`, panel: `/admin` (hasło wypisze skrypt). Ten sam skrypt aktualizuje serwis.
 
 ## Dostosowanie
 

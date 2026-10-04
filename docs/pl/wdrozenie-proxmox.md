@@ -18,6 +18,28 @@ W Proxmoxie: **Create VM** → wybierz ISO → ustaw powyższe → zainstaluj sy
 
 > **LXC zamiast VM?** Też zadziała, ale kontener musi mieć włączone `nesting=1` i `keyctl=1` (Options → Features), a najlepiej być typu *unprivileged*. Przy problemach z Dockerem w LXC wróć do VM.
 
+## Szybka instalacja jednym skryptem
+
+Na nowej maszynie (zalogowany przez SSH albo w konsoli Proxmoxa):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/CzubekxD/Excellence-News/main/deploy/install.sh -o install.sh
+sudo bash install.sh
+```
+
+Skrypt [`deploy/install.sh`](../../deploy/install.sh):
+
+1. instaluje Dockera (jeśli go nie ma),
+2. pobiera kod do `/opt/excellence-news`,
+3. tworzy `.env` z losowymi hasłami i pyta o dwie rzeczy: adres serwisu (Enter przyjmuje podpowiedź z adresem IP maszyny) i klucz Gemini (wklejasz go u siebie w terminalu; nie jest widoczny przy wpisywaniu i trafia tylko do `.env` na tym serwerze),
+4. buduje i uruchamia kontenery, czeka na stronę i wypisuje adres strony, panelu oraz **hasło administratora** (zapisz je).
+
+Ten sam skrypt służy do aktualizacji: `sudo bash /opt/excellence-news/deploy/install.sh` pobiera nowy kod i przebudowuje kontenery, a `.env` zostawia bez zmian.
+
+Jeśli repozytorium jest prywatne, `curl` go nie pobierze: najpierw `git clone` (z zalogowaniem do GitHuba), potem `sudo ./deploy/install.sh` w katalogu repozytorium.
+
+Punkty 2–4 poniżej opisują to samo ręcznie.
+
 ## 2. Docker
 
 Na nowej maszynie (jako użytkownik z `sudo`):
@@ -81,7 +103,7 @@ Pierwsze budowanie trwa kilka minut. Potem:
 
 Worker od razu zaczyna pobierać 30 źródeł z [`industry/sources.json`](../../industry/sources.json). Pierwsze wybrane wiadomości pojawią się po kilkunastu–kilkudziesięciu minutach. Dziennik wychodzi codziennie o 7:00, tygodnik w poniedziałki o 7:30, miesięcznik pierwszego dnia miesiąca o 8:00 (czas polski; zmiana w `site/site.ts`, `EDITION_TIMES`).
 
-Przydatne polecenia:
+Przydatne polecenia (w katalogu z kodem, po instalacji skryptem `/opt/excellence-news`; bez `sudo` po dodaniu się do grupy: `sudo usermod -aG docker $USER` i ponownym zalogowaniu):
 
 ```bash
 docker compose ps                  # stan kontenerów
@@ -137,10 +159,10 @@ Zanim udostępnisz serwis publicznie, uzupełnij [regulamin](../../site/pages/te
 ## 7. Aktualizacja
 
 ```bash
-cd Excellence-News
-git pull
-docker compose up -d --build
+sudo bash /opt/excellence-news/deploy/install.sh
 ```
+
+albo ręcznie w katalogu z kodem: `git pull && docker compose up -d --build`.
 
 Migracje bazy uruchamiają się same (kontener `setup`).
 
