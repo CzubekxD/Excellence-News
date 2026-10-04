@@ -1,154 +1,158 @@
-// 站点身份和读者看得到的文案。换成你的行业时，先改这个文件。
-// 网页和后端都读它；改完重新构建（docker compose up --build）即可生效。
-// 域名不在这里：部署时用环境变量 SITE_URL 设置。
+// Tożsamość serwisu i teksty widoczne dla czytelnika. Przy zmianie branży zaczynasz od tego pliku.
+// Czyta go zarówno strona, jak i backend; po zmianie przebuduj obrazy (docker compose up --build).
+// Domeny tu nie ma: ustawiasz ją przy wdrożeniu zmienną środowiskową SITE_URL.
 
 /**
- * 日报、周报、月报什么时候出（北京时间，HH:mm）：日报收这个时间之前的 24 小时，周报在每个自然周之后的周一出，
- * 月报在每月 1 日出。排程、成刊时间窗口、缺期告警和所有提到时间的文案都读它（public/ 里的文件写占位
- * {{dailyTime}}、{{weeklyTime}}、{{monthlyTime}}）；排程每半小时检查一次，所以写整点或半点。
+ * Kiedy wychodzą dziennik, tygodnik i miesięcznik (czas polski, HH:mm). Dziennik obejmuje 24 godziny przed
+ * tą porą, tygodnik wychodzi w poniedziałek po zakończonym tygodniu, miesięcznik 1. dnia miesiąca.
+ * Harmonogram, okna wydań, alarmy o brakującym wydaniu i wszystkie teksty z godziną czytają ten obiekt
+ * (pliki w public/ używają {{dailyTime}}, {{weeklyTime}}, {{monthlyTime}}). Harmonogram sprawdza co pół
+ * godziny, więc wpisuj pełne godziny albo wpół do.
  */
-export const EDITION_TIMES = { daily: "08:00", weekly: "10:00", monthly: "10:30" };
+export const EDITION_TIMES = { daily: "07:00", weekly: "07:30", monthly: "08:00" };
 
-/** “每天 08:00”“每周一 10:00”“每月 1 日 10:30”：写进句子里的出刊时间。 */
+/** „codziennie o 07:00”, „w poniedziałki o 07:30”, „1. dnia miesiąca o 08:00”: pora wydania w zdaniu. */
 export const EDITION_WHEN = {
-  daily: `每天 ${EDITION_TIMES.daily}`,
-  weekly: `每周一 ${EDITION_TIMES.weekly}`,
-  monthly: `每月 1 日 ${EDITION_TIMES.monthly}`,
+  daily: `codziennie o ${EDITION_TIMES.daily}`,
+  weekly: `w poniedziałki o ${EDITION_TIMES.weekly}`,
+  monthly: `1. dnia miesiąca o ${EDITION_TIMES.monthly}`,
 };
 
 export const SITE = {
-  /** 站名：导航、页面标题、分享图、RSS、MCP、后台都用它。 */
-  name: "MyHOT",
+  /** Nazwa serwisu: nawigacja, tytuły stron, obrazki udostępniania, RSS, MCP, panel admina. */
+  name: "Excellence News",
   /**
-   * 行业词：拼进默认说法里，比如“AI 日报”“AI 动态”。
-   * 改成“法律”“HR”“黄金”之类，页面上就会变成“法律日报”“法律动态”。
+   * Słowo branżowe, doklejane do domyślnych nazw: „Dziennik OPEX”, „Tygodnik OPEX”.
    */
-  subject: "AI",
-  /** 首页的完整标题（浏览器标签、搜索结果）。 */
-  homeTitle: "MyHOT — AI 行业动态 · 每日精选与日报",
-  /** 主题目录页（/topics）的标题。 */
-  topicsTitle: "AI 主题：公司与模型、技术方向、内容形态的最新动态",
-  /** 反馈表单输入框里的示例。 */
-  feedbackExample: "例如：我在搜索某个关键词时遇到……我原本想……",
-  /** 反馈页标题下面的一句话。 */
-  feedbackLead: "发现 bug、想要的功能、看不顺眼的地方，都可以告诉我们。",
-  /** 反馈表单邮箱框里的提示。 */
-  feedbackEmailHint: "留下邮箱，我们可以回信联系你",
-  /** 一句话介绍：搜索引擎、分享卡片、RSS、llms.txt 会用。 */
-  description: `从一批 AI 信源里挑出值得看的动态，把同一件事的多篇报道归到一起，${EDITION_WHEN.daily} 出一份日报。`,
-  /** llms.txt 里一句话介绍下面的一段详细介绍（选填）。 */
+  subject: "OPEX",
+  /** Pełny tytuł strony głównej (karta przeglądarki, wyniki wyszukiwania). */
+  homeTitle: "Excellence News — Lean, OPEX, Agile i koszty · codzienny wybór i dziennik",
+  /** Tytuł katalogu tematów (/topics). */
+  topicsTitle: "Tematy: firmy i instytucje, obszary doskonalenia, formy treści",
+  /** Przykład w polu formularza opinii. */
+  feedbackExample: "Np. szukałem informacji o … i nie znalazłem … Spodziewałem się …",
+  /** Zdanie pod tytułem strony opinii. */
+  feedbackLead: "Błąd, brakujące źródło, pomysł na funkcję albo coś, co przeszkadza: napisz.",
+  /** Podpowiedź w polu e-mail formularza opinii. */
+  feedbackEmailHint: "Zostaw e-mail, jeśli chcesz odpowiedź",
+  /** Opis w jednym zdaniu: wyszukiwarki, karty udostępniania, RSS, llms.txt. */
+  description: `Najważniejsze wiadomości o Lean, Operational Excellence, Agile i optymalizacji kosztów z kilkudziesięciu źródeł, po polsku. Te same wydarzenia z różnych źródeł łączone w jedno, dziennik ${EDITION_WHEN.daily}.`,
+  /** Dłuższy opis pod pierwszym zdaniem w llms.txt (opcjonalnie). */
   llmsIntro: null as string | null,
-  /** 一行小字：分享图、海报下方。 */
-  tagline: "值得关注的 AI 动态",
-  /** 搜索引擎读到的关键词（首页结构化数据）。 */
-  keywords: ["AI 资讯", "AI 新闻", "AI 日报", "AI 行业动态"] as string[],
-  /** 网站开始收录的年份（结构化数据的时间范围，选填）。 */
-  since: null as string | null,
-  /** 界面语言（HTML lang、og:locale）。 */
-  locale: "zh-CN",
-  /** 默认域名，只在没设置 SITE_URL 时使用。 */
+  /** Jedna linijka drobnym drukiem: pod obrazkami udostępniania i plakatami. */
+  tagline: "Co warto wiedzieć o doskonaleniu operacji",
+  /** Słowa kluczowe dla wyszukiwarek (dane strukturalne strony głównej). */
+  keywords: ["lean", "operational excellence", "OPEX", "agile", "kanban", "optymalizacja kosztów", "ciągłe doskonalenie", "TPS"] as string[],
+  /** Rok, od którego serwis zbiera wiadomości (zakres w danych strukturalnych, opcjonalnie). */
+  since: "2026" as string | null,
+  /** Język interfejsu (HTML lang, og:locale). */
+  locale: "pl-PL",
+  /** Domyślny adres, używany tylko gdy nie ustawiono SITE_URL. */
   defaultUrl: "http://localhost:3000",
-  /** 标准图标（favicon.ico、icon.png、icon-192.png、apple-icon.png、logo.svg）以外也放在网站根目录的图标，site/brand/ 里的文件名（选填）；manifest.webmanifest 或外站引用了它们时用。 */
+  /** Ikony z site/brand/ publikowane w katalogu głównym obok standardowych (opcjonalnie). */
   rootIcons: [] as string[],
   /**
-   * MCP 工具名的前缀（小写字母、数字、下划线），工具会叫 myhot_get_latest、myhot_search……
-   * 已经有人接入后就不要再改。
+   * Prefiks nazw narzędzi MCP (małe litery, cyfry, podkreślnik): exnews_get_latest, exnews_search…
+   * Nie zmieniaj, gdy ktoś już się podłączył.
    */
-  mcpPrefix: "myhot",
+  mcpPrefix: "exnews",
   /**
-   * 公开接口（MCP、OpenAPI、llms.txt）的版本号，只升不降。
-   * 改了接口里已有的字段或含义时升主版本，并在部署说明里写清。
+   * Wersja publicznego interfejsu (MCP, OpenAPI, llms.txt), tylko rośnie.
+   * Podnieś główny numer, gdy zmieniasz znaczenie istniejących pól.
    */
   interfaceVersion: "4.0.0",
-  /** 对外联系邮箱（选填）：llms.txt 和给 Agent 的使用说明里会写。 */
+  /** Kontaktowy e-mail (opcjonalnie): trafia do llms.txt i instrukcji dla agentów. */
   contactEmail: null as string | null,
-  /** 关于页底部的一行小字（选填）。 */
-  footerNote: "由 AIHOT 开源框架驱动",
-  /** 中国大陆网站的 ICP 备案号（选填），填了就显示在侧栏底部和“我的”页底部，并链接到工信部备案系统。 */
+  /** Linijka drobnym drukiem na dole strony „O serwisie” (opcjonalnie). */
+  footerNote: "Zbudowane na otwartym frameworku AIHOT (licencja MIT)",
+  /** Chiński numer rejestracyjny ICP; w Polsce zostaw null. */
   icp: null as string | null,
-  /** 源码的 GitHub 仓库地址（选填），填了就在侧栏底部和“我的”页底部显示“GitHub 开源”。 */
+  /** Adres repozytorium na GitHubie (opcjonalnie): pokazuje link „Kod źródłowy” w menu. */
   github: null as string | null,
-  /** 结构化数据里的网站运营者（搜索引擎用）。 */
+  /** Operator serwisu w danych strukturalnych (dla wyszukiwarek). */
   organization: {
-    name: "MyHOT",
-    /** 创始人（选填）。 */
+    name: "Excellence News",
+    /** Założyciel (opcjonalnie). */
     founder: null as null | { name: string; alternateName?: string; jobTitle?: string; description?: string; url?: string },
   },
-  /** 抓取信源时报上的名字和版本（User-Agent 里用），不要冒用别的站。 */
-  crawlerName: "MyHOTBot/1.0",
+  /** Nazwa i wersja w nagłówku User-Agent przy pobieraniu źródeł. Nie podszywaj się pod inne serwisy. */
+  crawlerName: "ExcellenceNewsBot/1.0",
 } as const;
 
-/** 使用规则和隐私说明两页（正文在 pages/ 里）。 */
+/** Strony „Zasady korzystania” i „Prywatność” (treść w pages/). */
 export const POLICY = {
   terms: {
-    /** 页面名：导航、页脚、页面标题都用它。 */
-    name: "使用规则",
-    description: "本站网页、RSS、公开 API 与 MCP 的使用规则。",
-    /** llms.txt 里对这一页的一句说明（选填）。 */
+    /** Nazwa strony: nawigacja, stopka, tytuł. */
+    name: "Zasady korzystania",
+    description: "Zasady korzystania ze stron, RSS, publicznego API i MCP serwisu.",
+    /** Zdanie o tej stronie w llms.txt (opcjonalnie). */
     covers: null as string | null,
-    /** Agent 接入页的 RSS、API 两栏各自提醒的使用规则（选填）。 */
+    /** Przypomnienia o zasadach w kolumnach RSS i API strony dla agentów (opcjonalnie). */
     notes: null as null | { rss: string; api: string },
     /**
-     * 讲清哪些用途要先取得授权的话（选填）：llms 接在 llms.txt“使用说明”的版权说明后面，
-     * agent 写在给 Agent 的使用说明“使用规则”一节的开头。
+     * Zdanie o tym, które zastosowania wymagają zgody (opcjonalnie): llms dopisywane w llms.txt po informacji
+     * o prawach autorskich, agent na początku sekcji zasad w instrukcji dla agentów.
      */
     license: null as null | { llms: string; agent: string },
     /**
-     * 公开 API、RSS 和 OpenAPI 文件声明使用规则的响应头（选填）：原样附上，再加一个指向这一页的
-     * Link 头（rel="terms-of-service"）；浏览器里的调用方也读得到它们。
+     * Nagłówki odpowiedzi API, RSS i OpenAPI deklarujące zasady (opcjonalnie): dodawane bez zmian, razem
+     * z nagłówkiem Link do tej strony (rel="terms-of-service").
      */
     headers: null as null | Record<string, string>,
   },
   privacy: {
-    description: "本站如何处理浏览器本地数据、反馈资料与访问日志。",
-    /** llms.txt 里对这一页的一句说明（选填）。 */
+    description: "Jak serwis obchodzi się z danymi w przeglądarce, opiniami i logami dostępu.",
+    /** Zdanie o tej stronie w llms.txt (opcjonalnie). */
     covers: null as string | null,
   },
   /**
-   * X 帖子本身的文字和图片算不算全文：算的话，只在这篇允许站内全文时显示（信源允许全文、正文也取到了）；
-   * 不算的话总是显示，和标题、摘要一样。
+   * Czy tekst i zdjęcia samego wpisu z X liczą się jako pełny tekst: jeśli tak, pokazywane tylko wtedy,
+   * gdy źródło pozwala na pełny tekst; jeśli nie, zawsze, jak tytuł i streszczenie.
    */
   xPostIsFullText: true,
 } as const;
 
-/** 条目卡片和详情页上的几处说法和显示。 */
+/** Kilka sformułowań na kartach i stronach wiadomości. */
 export const ITEM_COPY = {
-  /** 模型写的那句理由叫什么：卡片、详情页、Markdown 导出、给 Agent 的回答和群推送都用它。 */
-  reasonLabel: "推荐理由",
-  /** 读者在网页和分享图上看不看得到 AI 评分。只管显示：公开 API 和 MCP 的数据照样带 score，后台照常显示。 */
+  /** Jak nazywa się zdanie modelu wyjaśniające wybór: karty, strona wiadomości, eksport, odpowiedzi dla agentów. */
+  reasonLabel: "Dlaczego warto",
+  /** Czy czytelnik widzi ocenę AI na stronie i obrazkach. Dotyczy tylko wyświetlania: API i MCP zawsze podają score. */
   showScore: true,
 };
 
-/** 关于页的一张二维码卡片。 */
+/** Karta z kodem QR na stronie „O serwisie”. */
 interface ContactCard {
   kind: string;
   title: string;
   note: string;
-  /** 站外链接过的根目录文件名（选填），比如 qr-wechat.jpg：这个地址总是跳到现在的二维码。 */
+  /** Nazwa pliku w katalogu głównym, do którego linkowano z zewnątrz (opcjonalnie), np. qr-kontakt.jpg. */
   alias?: string;
 }
 
-/** 关于页的文案。数字（信源数、收录数、精选数、日报期数）来自站内实时统计，不用写在这里。 */
+/** Teksty strony „O serwisie”. Liczby (źródła, wiadomości, wybór, wydania) przychodzą z bieżących statystyk. */
 export const ABOUT = {
-  kicker: `关于 ${SITE.name}`,
-  /** 页面描述（搜索结果、分享卡片）。 */
-  description: `关于 ${SITE.name}：${SITE.description}`,
-  /** 大标题：第一行正常颜色，第二行强调色。 */
-  headline: ["AI 圈每天都有新动静，", "值得看的，只有几条。"] as [string, string],
-  /** 标题下面的一段话。{sources} 会换成实时的信源数（两边自动加空格，所以 {sources} 两边不写空格）；统计没取到时换成 sourcesFallback。 */
-  lead: `${SITE.name} 替你盯着{sources}个信源：抓取、归并、打分、精选，${EDITION_WHEN.daily} 出一份日报。免费，不用注册。`,
-  sourcesFallback: "十几",
-  /** 信源河动画下面的四个环节。 */
+  kicker: `O serwisie ${SITE.name}`,
+  /** Opis strony (wyniki wyszukiwania, karty udostępniania). */
+  description: `O serwisie ${SITE.name}: ${SITE.description}`,
+  /** Duży nagłówek: pierwsza linia zwykłym kolorem, druga akcentem. */
+  headline: ["W Lean i OPEX codziennie dzieje się dużo,", "naprawdę ważnych jest kilka rzeczy."] as [string, string],
+  /**
+   * Akapit pod nagłówkiem. {sources} zamienia się na bieżącą liczbę źródeł (spacje po obu stronach dodawane
+   * automatycznie, więc nie wpisuj ich); gdy statystyk brak, wstawiane jest sourcesFallback.
+   */
+  lead: `${SITE.name} śledzi za Ciebie{sources}źródeł: pobiera, łączy, ocenia i wybiera, a ${EDITION_WHEN.daily} wydaje dziennik. Za darmo, bez rejestracji.`,
+  sourcesFallback: "kilkadziesiąt",
+  /** Cztery etapy pod animacją rzeki źródeł. */
   steps: {
-    collect: "官方博客、媒体和个人的订阅源都在看；更新越勤的源看得越勤，最快 15 分钟看一次。",
-    store: "抓到的都存下来，同一件事的报道归到一起，热点榜就是从这里算出来的。",
-    select: `模型先看是不是这个行业的事、有没有实际信息，再写中文标题、摘要和${ITEM_COPY.reasonLabel}；营销稿和重复转发进不来。`,
-    publish: `${EDITION_WHEN.daily} 出日报，${EDITION_WHEN.weekly} 出周报，${EDITION_WHEN.monthly} 出月报。`,
+    collect: "Instytuty Lean, firmy doradcze, portale branżowe i blogi praktyków; im częściej źródło publikuje, tym częściej je sprawdzamy, najczęściej co 15 minut.",
+    store: "Wszystko, co pobierzemy, zostaje zapisane, a relacje o tym samym wydarzeniu łączymy w jedno. Z tego liczony jest ranking popularności.",
+    select: `Model najpierw sprawdza, czy tekst dotyczy branży i niesie konkretną informację, potem pisze po polsku tytuł, streszczenie i „${ITEM_COPY.reasonLabel}”. Reklamy i powielane teksty nie przechodzą.`,
+    publish: `Dziennik ${EDITION_WHEN.daily}, tygodnik ${EDITION_WHEN.weekly}, miesięcznik ${EDITION_WHEN.monthly}.`,
   },
   /**
-   * 作者块（选填），null 就不显示。
-   * avatarSourceId：一个 X 账号信源的 id，头像取它的（选填）。
-   * 二维码在后台“设置”里上传，或者放进 site/brand/contact/；没有二维码就不显示那张卡片。
+   * Blok autora (opcjonalnie), null go ukrywa.
+   * avatarSourceId: id źródła z kontem X, którego awatar użyć (opcjonalnie).
+   * Kody QR wgrywa się w panelu w „Ustawieniach” albo do site/brand/contact/; bez kodu karty nie ma.
    */
   maker: null as null | {
     name: string;
@@ -157,160 +161,179 @@ export const ABOUT = {
     wechat?: ContactCard;
     feishu?: ContactCard;
   },
-  /** 页面底部的版权与下架说明，中间接“反馈页”的链接。 */
-  copyright: [`${SITE.name} 是聚合摘要和阅读索引，原文版权归各来源所有。如果你是来源方，希望更正、下架或调整展示方式，可以通过`, "联系我们。"] as [string, string],
-  /** 页面底部“使用规则”链接的锚点 id（选填）：外部文档写死过这个锚点就填上，以后不要改。 */
+  /** Informacja o prawach autorskich i usuwaniu treści na dole strony; w środku link do strony opinii. */
+  copyright: [`${SITE.name} to agregator streszczeń i indeks lektur; prawa do oryginałów należą do ich autorów. Jeśli jesteś wydawcą i chcesz poprawki, usunięcia lub innego sposobu prezentacji, napisz do nas przez `, "."] as [string, string],
+  /** Kotwica linku „Zasady korzystania” na dole strony (opcjonalnie); nie zmieniaj, gdy ktoś do niej linkuje. */
   termsAnchor: null as string | null,
 } as const;
 
-/** 后台页面上给管理员的提示（选填）。 */
+/** Podpowiedzi dla administratora w panelu (opcjonalnie). */
 export const ADMIN = {
-  /** “反馈”页标题下的一行。 */
+  /** Linijka pod tytułem strony „Opinie”. */
   feedbackNote: null as string | null,
-  /** 确认框里补的一句本站规定：封禁反馈来源时。 */
+  /** Dodatkowe zdanie w oknie potwierdzenia przy blokowaniu nadawcy opinii. */
   banNote: null as string | null,
-  /** 确认框里补的一句本站规定：调整付费服务的请求上限时。 */
+  /** Dodatkowe zdanie w oknie potwierdzenia przy zmianie limitu płatnej usługi. */
   budgetNote: null as string | null,
 };
 
-/** Agent 接入页的示例。 */
+/** Przykłady na stronie dla agentów. */
 export const AGENT = {
-  /** MCP 工具表里“搜索”一行：能搜什么、可以怎么问。 */
-  search: { scope: "按公司、产品、人物或话题搜最近 7 天", ask: "这家公司最近发了什么？" },
+  /** Wiersz „Szukaj” w tabeli narzędzi MCP: co da się znaleźć i jak pytać. */
+  search: { scope: "po firmie, metodzie, osobie lub temacie z ostatnich 7 dni", ask: "Co nowego w Toyota Production System?" },
 };
 
-/** 日报、周报、月报版面上的说法。 */
+/** Sformułowania w dzienniku, tygodniku i miesięczniku. */
 export const REPORTS = {
-  /** 报头下面的出版者一行。 */
+  /** Linijka wydawcy pod winietą. */
   imprint: SITE.name.toUpperCase(),
-  /** 报头旁边的一个词。 */
+  /** Słowo obok winiety. */
   motto: SITE.subject as string,
-  /** 每种报告页面的描述（搜索结果、分享卡片），不带句号；llms.txt 介绍周报、月报时也用它。 */
+  /** Opisy stron wydań (wyniki wyszukiwania, karty udostępniania), bez kropki; llms.txt też ich używa. */
   descriptions: {
-    daily: `${SITE.name} ${subjectAfter(`${EDITION_WHEN.daily}（北京时间）发布的`, "行业精编日报")}`,
-    weekly: subjectAfter("每周", "行业综合回顾"),
-    monthly: subjectAfter("每月", "行业盘点"),
+    daily: `${SITE.name}: dziennik ${SITE.subject} wydawany ${EDITION_WHEN.daily}`,
+    weekly: `Tygodniowe podsumowanie ${SITE.subject}: najważniejsze wydarzenia tygodnia`,
+    monthly: `Miesięczny przegląd ${SITE.subject}: najważniejsze wydarzenia miesiąca`,
   },
   /**
-   * 一期里的一条怎么称呼（“4 件大事”）：没有头条时的标题（“这一天的 4 件 AI 大事”）、报头和往期目录的条数、
-   * 周报月报没有总述时的那句话，以及订阅说明里的“按栏目分好的大事”都用它。
+   * Jak nazywa się jedna pozycja wydania („4 ważne wiadomości”): w tytule bez czołówki, w winiecie i spisie
+   * wydań, w zdaniu tygodnika i miesięcznika bez wstępu. forms to formy liczby mnogiej: [1, 2–4, 5+].
    */
-  entry: { measure: "件", noun: "大事" },
-  /** 报头上其余几个数字后面的说法；精选数和日报期数在关于页、主题页也这样写。 */
-  metricUnits: { sourcesCount: "个来源", firstPartyEvents: "件一手发布", selectedCount: "条精选", reportsCovered: "期日报" },
-  /** 报告分享图上“共几条”的说法。 */
-  shareUnit: "件大事",
+  entry: { measure: "", noun: "ważne wiadomości", forms: ["ważna wiadomość", "ważne wiadomości", "ważnych wiadomości"] as Plural },
+  /** Jednostki pozostałych liczb w winiecie; wybór i liczba wydań tak samo na stronie „O serwisie” i tematów. */
+  metricUnits: {
+    sourcesCount: ["źródło", "źródła", "źródeł"] as Plural,
+    firstPartyEvents: ["publikacja z pierwszej ręki", "publikacje z pierwszej ręki", "publikacji z pierwszej ręki"] as Plural,
+    selectedCount: ["wybrana wiadomość", "wybrane wiadomości", "wybranych wiadomości"] as Plural,
+    reportsCovered: ["wydanie dziennika", "wydania dziennika", "wydań dziennika"] as Plural,
+  },
+  /** „Razem N …” na obrazku udostępniania wydania. */
+  shareUnit: ["ważna wiadomość", "ważne wiadomości", "ważnych wiadomości"] as Plural,
 };
 
-/** 运维告警（只发给站长）里随部署而变的几处说法。 */
+/** Alarmy techniczne (tylko dla administratora): sformułowania zależne od wdrożenia. */
 export const ALERTS = {
-  /** 多少分钟没有收录新文章就告警“网站停止收录新内容”（最多一天）；环境变量 ALERT_QUIET_MINUTES 优先。 */
+  /** Po ilu minutach bez nowych artykułów alarmować, że serwis przestał zbierać (maks. doba); ALERT_QUIET_MINUTES ma pierwszeństwo. */
   quietMinutes: 360,
-  /** 同一条告警里，“没有”后面补一句平时的收录量；null 就不写。 */
+  /** W tym samym alarmie, po „brak”, zdanie o zwykłej liczbie artykułów; null pomija. */
   usualFlow: null as string | null,
-  /** worker 停了的告警里，怎么看它的日志。 */
-  workerLogs: "看 worker 的日志（docker compose logs worker）",
-  /** 某家模型服务拒绝服务或额度用完时，告警里说哪些步骤停了；没写的服务用通用说法。 */
+  /** W alarmie o zatrzymanym workerze: jak zobaczyć jego logi. */
+  workerLogs: "zobacz logi workera (docker compose logs worker)",
+  /** Gdy dostawca modelu odmawia albo kończy się limit: które kroki stanęły; niewpisani dostawcy dostają ogólne zdanie. */
   modelStops: {} as Record<string, string>,
 };
 
-/** 后台新建信源时的默认设置。 */
+/** Domyślne ustawienia nowego źródła w panelu. */
 export const SOURCE_DEFAULTS = {
-  /** 站内展示全文；false 时只显示摘要和原文链接。 */
+  /** Pełny tekst na stronie; false pokazuje tylko streszczenie i link do oryginału. */
   siteFulltext: false,
 };
 
 /**
- * 社区站的信源（填信源 id）：算热度时按发帖的账号计，一个账号算一个独立来源，而不是整个信源只算一个。
- * dev 是 dev.to 的文章流，hn 是 Hacker News 的帖子流。
+ * Źródła typu społecznościowego (id źródła): popularność liczona per konto autora, nie per całe źródło.
+ * dev to strumień artykułów dev.to, hn to wpisy z Hacker News.
  */
 export const COMMUNITY_FEEDS: { dev: string[]; hn: string[] } = {
   dev: [],
   hn: [],
 };
 
-/** 各页分享图（/og/pages/*.png）上的文字。主题目录页的那张按主题数自动生成。 */
+/** Teksty na obrazkach udostępniania stron (/og/pages/*.png). Obrazek katalogu tematów powstaje z liczby tematów. */
 export const CARDS: Record<string, { kicker: string; title: string; subtitle: string; accent?: "hot" | "amber" }> = {
-  site: { kicker: subjectAfter("每日", "精选"), title: SITE.tagline, subtitle: SITE.description },
-  all: { kicker: subjectAfter("全部", "动态"), title: "所有信源的最新动态，一站看完", subtitle: "按时间汇总各信源的最新动态，可按类别与标签筛选。" },
-  hot: { kicker: "热点榜", title: "过去 48 小时，大家在讨论什么", subtitle: "热度指数、趋势与组成热度的公开来源。", accent: "hot" },
-  daily: { kicker: withSubject("日报"), title: subjectAfter(`每天 ${spokenTime(EDITION_TIMES.daily)}，一份读得完的`, "日报"), subtitle: `${subjectAfter("前一天值得关注的", "动态")}。` },
-  weekly: { kicker: withSubject("周报"), title: `一周${REPORTS.entry.noun}，一次看清`, subtitle: "本周的主线、重要发布与值得回看的讨论。" },
-  monthly: { kicker: withSubject("月报"), title: "一个月的变化", subtitle: "月度主线与关键事件回顾。" },
-  about: { kicker: "关于", title: `关于 ${SITE.name}`, subtitle: SITE.description },
-  terms: { kicker: "使用规则", title: `${SITE.name} 使用规则`, subtitle: "网页、API、RSS 与 MCP 的使用范围。" },
-  privacy: { kicker: "隐私说明", title: `${SITE.name} 隐私说明`, subtitle: "访问日志、浏览器本地数据与反馈资料的处理方式。" },
-  changelog: { kicker: "更新日志", title: `${SITE.name} 更新日志`, subtitle: "功能更新、优化、公告与下线记录。" },
-  feedback: { kicker: "反馈", title: "告诉我们哪里可以更好", subtitle: "内容、功能、接入，或来源方的更正与下架请求。" },
-  agent: { kicker: "Agent 接入", title: `把 ${SITE.name} 接进你的 Agent`, subtitle: "MCP、RSS、API 三种方式，匿名只读，无需 API Key。" },
+  site: { kicker: `Codzienny wybór ${SITE.subject}`, title: SITE.tagline, subtitle: SITE.description },
+  all: { kicker: "Wszystkie wiadomości", title: "Najnowsze ze wszystkich źródeł w jednym miejscu", subtitle: "Wiadomości ze wszystkich źródeł według czasu, z filtrami kategorii i tagów." },
+  hot: { kicker: "Na czasie", title: "O czym się mówi w ostatnich 48 godzinach", subtitle: "Indeks popularności, trend i źródła, które go tworzą.", accent: "hot" },
+  daily: { kicker: withSubject("Dziennik"), title: `Codziennie o ${spokenTime(EDITION_TIMES.daily)}: dziennik do przeczytania przy kawie`, subtitle: "Co warto było wiedzieć z poprzedniego dnia." },
+  weekly: { kicker: withSubject("Tygodnik"), title: "Najważniejsze z tygodnia w jednym miejscu", subtitle: "Główne wątki tygodnia, ważne publikacje i dyskusje warte powrotu." },
+  monthly: { kicker: withSubject("Miesięcznik"), title: "Co zmieniło się w miesiącu", subtitle: "Główne wątki i kluczowe wydarzenia miesiąca." },
+  about: { kicker: "O serwisie", title: `O serwisie ${SITE.name}`, subtitle: SITE.description },
+  terms: { kicker: "Zasady korzystania", title: `${SITE.name}: zasady korzystania`, subtitle: "Zakres korzystania ze stron, API, RSS i MCP." },
+  privacy: { kicker: "Prywatność", title: `${SITE.name}: prywatność`, subtitle: "Logi dostępu, dane w przeglądarce i opinie." },
+  changelog: { kicker: "Zmiany", title: `${SITE.name}: dziennik zmian`, subtitle: "Nowe funkcje, poprawki, ogłoszenia i wycofania." },
+  feedback: { kicker: "Opinie", title: "Napisz, co możemy poprawić", subtitle: "Treść, funkcje, integracje, poprawki i usunięcia na prośbę wydawcy." },
+  agent: { kicker: "Dla agentów", title: `Podłącz ${SITE.name} do swojego agenta`, subtitle: "MCP, RSS i API: anonimowo, tylko do odczytu, bez klucza API." },
 };
 
-/** 公开接口的访问约定里随部署而变的几处：给 Agent 的使用说明、llms.txt 会写。 */
+/** Zasady dostępu do publicznego interfejsu: instrukcja dla agentów i llms.txt. */
 export const ACCESS = {
-  /** 同一 IP 每分钟大约能请求多少次，超过会收到 429 并带 Retry-After（选填，由部署的反向代理限流）；null 表示不限流，说明里不提。 */
+  /** Ile zapytań na minutę z jednego IP (opcjonalnie, limituje reverse proxy); null: bez limitu, instrukcja o nim nie wspomina. */
   ratePerMinute: null as number | null,
-  /** 请写程序同步数据的人报上的 User-Agent（选填），写在 JSON 接口的说明后面。 */
+  /** User-Agent, który mają podawać skrypty synchronizujące dane (opcjonalnie). */
   userAgent: null as string | null,
 };
 
-/** 这个部署自己的几处安排（选填）。 */
+/** Ustawienia tego konkretnego wdrożenia (opcjonalnie). */
 export const DEPLOYMENT = {
-  /** 凭据分组文件（models.env、collectors.env……）默认放在哪个目录，相对仓库根目录；环境变量 AIHOT_CREDENTIALS_DIR 优先，都没有就只读环境变量。 */
+  /** Katalog z plikami grup poświadczeń (models.env, collectors.env…), względem katalogu repozytorium; AIHOT_CREDENTIALS_DIR ma pierwszeństwo. */
   credentialsDir: null as string | null,
-  /** 凭据分组的文件名（放在凭据目录下，选填）：没写的分组用“分组名.env”，比如 models.env。 */
+  /** Nazwy plików grup poświadczeń (opcjonalnie); niewpisane grupy używają „nazwa-grupy.env”. */
   credentialFiles: {} as Partial<Record<string, string>>,
-  /** 这个部署额外要求的凭据（[分组, 环境变量名]）；生产 API 启动时检查，默认没有额外要求。 */
+  /** Dodatkowe wymagane poświadczenia ([grupa, zmienna]); sprawdzane przy starcie produkcyjnego API. */
   requiredSecrets: [] as const,
-  /** 线上 api 收到的 Host（CDN 回源用的域名，选填）；本地开发时，网页开发服务器转给 api 的请求也换成它，和线上一致。 */
+  /** Host, który widzi produkcyjne API (domena origin za CDN, opcjonalnie). */
   originHost: null as string | null,
-  /** 反向代理把没登录的后台访问转去登录时，用哪个请求头带上原来的地址（选填，登录后回到那里）。 */
+  /** Nagłówek, którym reverse proxy przekazuje adres powrotu po logowaniu do panelu (opcjonalnie). */
   loginReturnHeader: null as string | null,
   /**
-   * 图片代理从原站取图的流量上限：超过后没缓存的图先返回 503，等这一分钟或这一天过去，当天额度用完会进运营日报；
-   * null 就不设上限。环境变量 IMGPROXY_UPSTREAM_MB_PER_MINUTE、IMGPROXY_UPSTREAM_GB_PER_DAY 优先。
+   * Limit ruchu proxy obrazków do serwerów źródłowych; po przekroczeniu niezbuforowane obrazki dostają 503.
+   * null: bez limitu. IMGPROXY_UPSTREAM_MB_PER_MINUTE i IMGPROXY_UPSTREAM_GB_PER_DAY mają pierwszeństwo.
    */
   imageUpstreamBudget: null as null | { mbPerMinute: number; gbPerDay: number },
-  /**
-   * 已实测应由服务器直接连接、不走出网代理（EGRESS_PROXY_URL）的域名，采集和图片共用（选填）。
-   * 每次重定向重新按目标域名选路，直连仍检查实际连接地址。
-   */
+  /** Domeny łączone bezpośrednio, z pominięciem EGRESS_PROXY_URL (opcjonalnie). */
   directFetchHosts: [] as string[],
   /**
-   * 精选评测（scripts/eval-selection.ts）不带参数时用的金标集：文件（相对仓库根目录）、抽样条数、只抽哪一份、门槛扫描范围。
-   * null 就用 .data/gold.jsonl 的全部样本（最多 200 条），在 40–90 之间扫描。
+   * Zbiór oznaczonych przykładów do ewaluacji wyboru (scripts/eval-selection.ts bez argumentów).
+   * null: wszystkie przykłady z .data/gold.jsonl (maks. 200), progi sprawdzane w zakresie 40–90.
    */
   selectionGold: null as null | { file: string; sample: number; split: string; sweep: [number, number] },
 };
 
-/** RSS 订阅源的说明里随站点而变的说法。 */
+/** Sformułowania w opisach kanałów RSS. */
 export const FEED_COPY = {
-  /** “全部动态”源的说明里，除了未审内容、低相关条目和已合并重复条目，还写明不含的内容（选填）。 */
+  /** Czego jeszcze nie ma w kanale „Wszystkie” poza nieocenionymi, nieistotnymi i scalonymi duplikatami (opcjonalnie). */
   allLeavesOut: [] as string[],
 };
 
 /**
- * 公开接口（API、RSS、MCP）里和网页不同的类别（选填）。上线后不要改：接口参数和订阅地址里有类别的 key。
- * merge：并进另一类发布的类别，key 是行业包里的类别，值是它并进的类别（公开接口比网页少一类时用）；
- * feedLabels：分类 RSS 标题里的名字，替换行业包里的 feedLabel（并进了别的类别时，名字常常也要跟着改）。
+ * Kategorie publicznego interfejsu (API, RSS, MCP) różne od strony (opcjonalnie). Nie zmieniaj po starcie:
+ * klucze kategorii są w parametrach i adresach subskrypcji.
+ * merge: kategoria publikowana jako inna; feedLabels: nazwa w tytule kanału RSS kategorii.
  */
 export const PUBLIC_CATEGORIES = {
   merge: {},
   feedLabels: {},
 } as const;
 
-/** “AI 日报”这类说法：行业词和名词之间，英文词加空格，中文词不加。 */
+/** Formy liczebnika: [1, 2–4 (bez 12–14), pozostałe]. */
+export type Plural = readonly [one: string, few: string, many: string];
+
+/** Forma rzeczownika do liczby: plural(1, f) → „źródło”, plural(3, f) → „źródła”, plural(5, f) → „źródeł”. */
+export function plural(n: number, forms: Plural): string {
+  const abs = Math.abs(Math.trunc(n));
+  if (abs === 1) return forms[0];
+  const tens = abs % 100;
+  const ones = abs % 10;
+  if (ones >= 2 && ones <= 4 && !(tens >= 12 && tens <= 14)) return forms[1];
+  return forms[2];
+}
+
+/** „12 źródeł”: liczba z odmienionym rzeczownikiem. */
+export function count(n: number, forms: Plural): string {
+  return `${n.toLocaleString("pl-PL")} ${plural(n, forms)}`;
+}
+
+/** „Dziennik OPEX”: rzeczownik z doklejonym słowem branżowym. */
 export function withSubject(noun: string): string {
-  return /[A-Za-z0-9]$/.test(SITE.subject) ? `${SITE.subject} ${noun}` : `${SITE.subject}${noun}`;
+  return `${noun} ${SITE.subject}`;
 }
 
-/** “按主题看 AI”“往期 AI 日报”这类说法：行业词接在中文后面，英文词前加空格，中文词不加；noun 照 withSubject 接上。 */
+/** „Wszystkie wiadomości OPEX”: tekst, a po nim słowo branżowe (albo rzeczownik ze słowem branżowym). */
 export function subjectAfter(text: string, noun?: string): string {
-  const gap = /^[A-Za-z0-9]/.test(SITE.subject) ? " " : "";
-  return `${text}${gap}${noun ? withSubject(noun) : SITE.subject}`;
+  return `${text} ${noun ? withSubject(noun) : SITE.subject}`;
 }
 
-/** “8 点”“10 点 30 分”：口语里的 HH:mm。 */
+/** „7:00”, „10:30”: godzina HH:mm bez zera na początku. */
 function spokenTime(time: string): string {
   const [hour, minute] = time.split(":").map(Number) as [number, number];
-  return `${hour} 点${minute ? ` ${minute} 分` : ""}`;
+  return `${hour}:${String(minute).padStart(2, "0")}`;
 }

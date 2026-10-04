@@ -7,6 +7,7 @@ import { sql, type Db } from "../db.ts";
 import { proxiedImage, proxiedImageSet } from "../media/imgproxy.ts";
 import { displayTags, publicSourceName } from "./rules.ts";
 import { seatedCondition } from "./scope.ts";
+import { isReaderLanguage } from "../lib/language.ts";
 
 export interface ItemRow {
   id: string;
@@ -181,14 +182,14 @@ export function toFeedItemSummary(row: ItemRow): FeedItemSummary {
 }
 
 /**
- * An article written in Chinese: its language says so, or its text opens in Chinese and it is not marked
- * English (the translator's rule, editorial/translate.ts). Every exit shows such a body as it is.
+ * An article written in the reader's language (Polish): its language says so, or (undeclared) its text
+ * opens in Polish (the translator's rule, editorial/translate.ts). Every exit shows such a body as it is.
  */
 export function isChineseBody(a: { language?: string | null; body_text?: string | null }): boolean {
-  return a.language === "zh" || (/[一-鿿]/.test(a.body_text?.slice(0, 400) ?? "") && a.language !== "en");
+  return isReaderLanguage(a.language, a.body_text ?? "");
 }
 
-/** The complete Chinese translation an export (Markdown, full RSS) carries; a page also shows a partial one. */
+/** The complete Polish translation an export (Markdown, full RSS) carries; a page also shows a partial one. */
 export function exportTranslation(a: { language?: string | null; body_text?: string | null; tr_html?: string | null; tr_complete?: boolean | null }): string | null {
   return !isChineseBody(a) && a.tr_html && a.tr_complete ? a.tr_html : null;
 }

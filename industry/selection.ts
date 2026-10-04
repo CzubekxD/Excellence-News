@@ -1,19 +1,21 @@
-// 精选的门槛。评分标准本身写在 prompts/selection-score.md；这里只决定“多少分算入选”。
-// 每篇资料由评分模型独立打两次分（0–100），两次之和 ≥ 2 × 门槛、并确认不是精选里已有新闻的重复报道才进精选
-// （见 docs/selection.md），卡片上显示两次的平均分。
-// 门槛按信源分级区分：官方一手信源的门槛低一些，媒体和个人的高一些。改了门槛或评分提示词，
-// 用 scripts/eval-selection.ts 在你自己标注的样本上重跑一遍，再决定上线（见 docs/selection.md）。
+// Progi wyboru. Same kryteria oceny są w prompts/selection-score.md; tutaj decydujesz tylko, „ile punktów
+// wystarcza”. Model oceniający niezależnie ocenia każdy tekst dwa razy (0–100). Tekst trafia do wyboru, gdy
+// suma obu ocen ≥ 2 × próg i nie jest powtórzeniem wiadomości już wybranej (docs/selection.md); karta
+// pokazuje średnią z obu ocen.
+// Progi zależą od poziomu źródła: oficjalne źródła z pierwszej ręki mają niższy próg, media i blogi wyższy.
+// Po zmianie progów albo promptu oceny uruchom scripts/eval-selection.ts na własnych oznaczonych przykładach
+// i dopiero wtedy wdrażaj (docs/pl/kalibracja.md).
 
 export const SELECTION = {
   /**
-   * 信源分级 → 入选门槛（平均分）。分级在后台“信源”里给每个源设置：
-   *   T1 官方一手（官网、官方博客、机构）· T1_5 官方账号、准官方创作者 · T2 媒体与个人
-   * 分级 EXCLUDE_MP 以及这里没有列出的分级，不参与精选评分（只进“全部动态”）。
+   * Poziom źródła → próg wyboru (średnia ocena). Poziom ustawiasz każdemu źródłu w panelu, w „Źródłach”:
+   *   T1 instytucje i oficjalne źródła · T1_5 eksperci i blogi praktyków · T2 media
+   * Poziom EXCLUDE_MP i poziomy spoza tej listy nie biorą udziału w ocenie wyboru (trafiają tylko do „Wszystkich”).
    */
   thresholds: { T1: 60, T1_5: 65, T2: 76 } as Record<string, number>,
   /**
-   * 没入选、但平均分高于这个数的资料，也用精选的写法（内容理解：标题、摘要、推荐理由）来写，
-   * 其余用更便宜的“标题摘要翻译”。
+   * Teksty niewybrane, ale ze średnią powyżej tej liczby, dostają tytuł, streszczenie i „Dlaczego warto” pisane
+   * tak jak wybrane (krok rozumienia); pozostałe tańszą ścieżką „tytuł i streszczenie”.
    */
   understandFloor: 50,
 } as const;

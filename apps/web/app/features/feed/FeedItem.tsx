@@ -9,7 +9,7 @@ import { CATEGORY_LABELS } from "@aihot/contracts/taxonomy";
 import { ITEM_COPY } from "@aihot/site";
 import { SameEventBadge, SelectedBadge } from "../../components/ui/Badge";
 import { ScoreLabel } from "../../components/ui/Score";
-import { beijingTime } from "@aihot/contracts/time";
+import { siteTime } from "@aihot/contracts/time";
 import { MediaThumbs, SourceLine, StarButton } from "./parts";
 import { GroupButton, GroupSources } from "./ReadingGroup";
 import { QuotedLine } from "../item/QuotedPost";
@@ -42,7 +42,7 @@ export const FeedItem = memo(function FeedItem({ item, group, filters, read = fa
         <SourceLine item={item} className="text-ink-4" />
         {at && (
           <time dateTime={at} className="mono shrink-0 text-[12px] lg:hidden">
-            · {beijingTime(at)}
+            · {siteTime(at)}
           </time>
         )}
         {item.selected && (
@@ -100,9 +100,9 @@ export const FeedItem = memo(function FeedItem({ item, group, filters, read = fa
 
       {item.sameEvent && (
         <p className="relative z-10 mt-2 line-clamp-1 text-[12.5px] text-ink-4">
-          同一新闻，精选展示
+          Ta sama wiadomość w wyborze:
           <Link viewTransition to={`/items/${item.sameEvent.id}`} className="text-ink-3 transition-colors hover:text-accent">
-            《{item.sameEvent.title}》
+            „{item.sameEvent.title}”
           </Link>
         </p>
       )}
@@ -114,7 +114,7 @@ export const FeedItem = memo(function FeedItem({ item, group, filters, read = fa
 
       {item.reason && (
         <div className="mt-1 lg:mt-3 lg:border-t lg:border-line-soft lg:pt-3">
-          <p className="line-clamp-1 text-[13px] leading-[1.65] text-note lg:line-clamp-none lg:leading-[1.75]">{`${ITEM_COPY.reasonLabel}：`}{item.reason}</p>
+          <p className="line-clamp-1 text-[13px] leading-[1.65] text-note lg:line-clamp-none lg:leading-[1.75]">{`${ITEM_COPY.reasonLabel}: `}{item.reason}</p>
         </div>
       )}
 

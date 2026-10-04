@@ -182,24 +182,24 @@ export async function exportMarkdown(id: string): Promise<{ filename: string; bo
   if (!row || !markdownAvailable(row)) return null;
   const lines: string[] = [];
   lines.push(`# ${row.title}`, "");
-  if (row.original_title) lines.push(`> 原标题：${row.original_title}`, "");
-  lines.push(`- 来源：${publicSourceName(row.source_name)}`);
+  if (row.original_title) lines.push(`> Oryginalny tytuł: ${row.original_title}`, "");
+  lines.push(`- Źródło: ${publicSourceName(row.source_name)}`);
   // Without a reliable date from the original, the time it was collected says so.
-  lines.push(row.published_at ? `- 发布时间：${row.published_at.toISOString()}` : `- 收录时间：${row.discovered_at.toISOString()}`);
-  lines.push(`- ${SITE.name}：${itemUrl(row.id)}`);
-  lines.push(`- 原文：${row.url}`, "");
-  if (row.summary) lines.push("## 摘要", "", row.summary, "");
+  lines.push(row.published_at ? `- Data publikacji: ${row.published_at.toISOString()}` : `- Pobrano: ${row.discovered_at.toISOString()}`);
+  lines.push(`- ${SITE.name}: ${itemUrl(row.id)}`);
+  lines.push(`- Oryginał: ${row.url}`, "");
+  if (row.summary) lines.push("## Streszczenie", "", row.summary, "");
   if (row.selected && row.seat && row.reason) lines.push(`## ${ITEM_COPY.reasonLabel}`, "", row.reason, "");
   if (showsPost(row) && row.x_post?.text) {
-    lines.push("## 正文", "", String(row.x_post.text), "");
-    if (row.zh_text) lines.push("## 中文译文", "", row.zh_text, "");
+    lines.push("## Treść", "", String(row.x_post.text), "");
+    if (row.zh_text) lines.push("## Tłumaczenie", "", row.zh_text, "");
     const q = row.x_post.quoted as { handle?: string; text?: string; url?: string } | null | undefined;
-    if (q?.text) lines.push(`## 引用 @${q.handle ?? ""}`, "", ...String(q.text).split("\n").map((l) => `> ${l}`), "", ...(q.url ? [q.url, ""] : []));
-    if (q?.text && row.quoted_zh) lines.push("### 引用中文译文", "", ...row.quoted_zh.split("\n").map((l) => `> ${l}`), "");
+    if (q?.text) lines.push(`## Cytat @${q.handle ?? ""}`, "", ...String(q.text).split("\n").map((l) => `> ${l}`), "", ...(q.url ? [q.url, ""] : []));
+    if (q?.text && row.quoted_zh) lines.push("### Tłumaczenie cytatu", "", ...row.quoted_zh.split("\n").map((l) => `> ${l}`), "");
   } else if (row.body_mode === "full" && row.body_html) {
     const translation = exportTranslation(row);
-    if (translation) lines.push("## 正文 · 中文译文", "", bodyToMarkdown(translation, row.url), "");
-    lines.push(isChineseBody(row) ? "## 正文" : "## 正文 · 原文", "", bodyToMarkdown(row.body_html, row.url), "");
+    if (translation) lines.push("## Treść · tłumaczenie", "", bodyToMarkdown(translation, row.url), "");
+    lines.push(isChineseBody(row) ? "## Treść" : "## Treść · oryginał", "", bodyToMarkdown(row.body_html, row.url), "");
   }
   return { filename: `${SITE.mcpPrefix}-${row.id}.md`, body: lines.join("\n").replace(/\n{3,}/g, "\n\n") };
 }

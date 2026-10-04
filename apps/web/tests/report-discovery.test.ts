@@ -53,7 +53,7 @@ async function page(tab: string) {
 test('the access page names every report cadence in its visible overview', async () => {
   const $ = await page('rss');
   const intro = $('h1').first().closest('header').find('p').first().text();
-  for (const label of ['日报', '周报', '月报']) assert.ok(intro.includes(label), `access overview omits ${label}: ${intro}`);
+  for (const label of ['dziennik', 'tygodnik', 'miesięcznik']) assert.ok(intro.includes(label), `access overview omits ${label}: ${intro}`);
 });
 
 test('all report RSS cards tell readers the feed includes an issue contents list', async () => {
@@ -62,7 +62,7 @@ test('all report RSS cards tell readers the feed includes an issue contents list
     const address = $(`code`).filter((_, node) => $(node).text().endsWith(`/feed/${kind}.xml`));
     assert.equal(address.length, 1, `${kind} RSS must be discoverable`);
     const description = address.closest('.card').find('p').text();
-    assert.match(description, /目录|按栏目/, `${kind} RSS must describe its contents, not only its cadence`);
+    assert.match(description, /spis|według działów/, `${kind} RSS must describe its contents, not only its cadence`);
   }
 });
 

@@ -14,6 +14,7 @@ import {
   bodyModeOf, channelOf, displayTags, isIndexable, isPoolEligible, isSelectable, mayRedistribute, publicSourceName, type SourceFacts,
 } from "./rules.ts";
 import { latestCompositeCondition, ownFactEvidenceCondition } from "./scope.ts";
+import { isReaderLanguage } from "../lib/language.ts";
 
 interface ArticleRow {
   id: string;
@@ -262,8 +263,8 @@ export async function publishArticleTx(tx: Tx, articleId: string, options: Publi
   const now = options.now ?? new Date();
 
   const f = override?.fields ?? {};
-  const isChineseTitle = article.language === "zh" || /[一-鿿]/.test(article.title);
-  // An X post carries its Chinese in the summary and translation; without a Chinese title its own
+  const isChineseTitle = isReaderLanguage(article.language, article.title);
+  // An X post carries its Polish in the summary and translation; without a Polish title its own
   // text is the title, where an article would still be a half-finished card.
   const zhTitle = analysis?.title_zh?.trim() ? analysis.title_zh : null;
   const title = pickString(f.title, zhTitle ?? (isChineseTitle || article.x_post ? collapseWhitespace(article.title) : null));

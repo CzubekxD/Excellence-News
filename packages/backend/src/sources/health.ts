@@ -20,7 +20,7 @@ export interface SourceHealthRow {
   detail_failures: number;
 }
 
-export const SOURCE_USE_NAMES: Record<string, string> = { editorial: "编辑内容", hot_signal: "热度信号" };
+export const SOURCE_USE_NAMES: Record<string, string> = { editorial: "Treści redakcyjne", hot_signal: "Sygnały popularności" };
 
 /** Seven days of outcomes, including intermittent failures that a later success clears on sources. */
 export async function sourceHealth(now = Date.now()) {
@@ -67,6 +67,6 @@ export async function sourceHealth(now = Date.now()) {
 
 /** Bounded display, with the full count explicit; the underlying assessment never drops the tail. */
 export function sourceHealthList(rows: SourceHealthRow[], describe: (row: SourceHealthRow) => string, limit = 10): string {
-  const list = rows.slice(0, limit).map(s => `${s.name}（${s.id}）：${describe(s)}`).join("；");
-  return list + (rows.length > limit ? `；另有 ${rows.length - limit} 个，见信源周报与后台信源列表` : "");
+  const list = rows.slice(0, limit).map(s => `${s.name} (${s.id}): ${describe(s)}`).join("; ");
+  return list + (rows.length > limit ? `; i jeszcze ${rows.length - limit}, zob. tygodniowy raport źródeł i listę źródeł w panelu` : "");
 }

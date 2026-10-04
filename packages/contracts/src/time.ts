@@ -1,27 +1,62 @@
-// Beijing (Asia/Shanghai, fixed UTC+8, no DST) calendar helpers shared by web and backend.
+// Site-local calendar helpers shared by web and backend. The site keeps time in SITE_TIME_ZONE
+// (Europe/Warsaw: UTC+1 in winter, UTC+2 in summer); every date, schedule and label reads it from here.
 
-const OFFSET_MS = 8 * 3600 * 1000;
+export const SITE_TIME_ZONE = "Europe/Warsaw";
 
-/** YYYY-MM-DD of the instant in Beijing time. */
-export function beijingDate(instant: Date | string | number): string {
-  const d = new Date(new Date(instant).getTime() + OFFSET_MS);
-  return d.toISOString().slice(0, 10);
+const PARTS = new Intl.DateTimeFormat("en-CA", {
+  timeZone: SITE_TIME_ZONE,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hourCycle: "h23",
+});
+
+/** Wall clock of the instant in the site's zone. */
+function wallClock(ms: number): { date: string; time: string; offsetMs: number } {
+  const p: Record<string, string> = {};
+  for (const part of PARTS.formatToParts(new Date(ms))) p[part.type] = part.value;
+  const date = `${p.year}-${p.month}-${p.day}`;
+  const time = `${p.hour}:${p.minute}`;
+  const asUtc = Date.parse(`${date}T${time}:${p.second}Z`);
+  return { date, time, offsetMs: asUtc - Math.floor(ms / 1000) * 1000 };
 }
 
-/** HH:mm of the instant in Beijing time. */
-export function beijingTime(instant: Date | string | number): string {
-  const d = new Date(new Date(instant).getTime() + OFFSET_MS);
-  return d.toISOString().slice(11, 16);
+/** YYYY-MM-DD of the instant in the site's time zone. */
+export function siteDate(instant: Date | string | number): string {
+  return wallClock(new Date(instant).getTime()).date;
 }
 
-/** UTC instant of 00:00 Beijing on the given calendar day. */
-export function beijingMidnight(date: string): Date {
-  return new Date(Date.parse(`${date}T00:00:00+08:00`));
+/** HH:mm of the instant in the site's time zone. */
+export function siteTime(instant: Date | string | number): string {
+  return wallClock(new Date(instant).getTime()).time;
 }
 
-/** UTC instant of an HH:mm Beijing time on the given calendar day. */
-export function beijingAt(date: string, time: string): Date {
-  return new Date(Date.parse(`${date}T${time}:00+08:00`));
+/** ISO 8601 with the site's UTC offset, to the second: "2026-10-04T16:10:05+02:00". */
+export function siteIso(instant: Date | string | number): string {
+  const ms = new Date(instant).getTime();
+  const { date, offsetMs } = wallClock(ms);
+  const seconds = new Date(Math.floor(ms / 1000) * 1000 + offsetMs).toISOString().slice(11, 19);
+  const minutes = Math.round(offsetMs / 60000);
+  const sign = minutes < 0 ? "-" : "+";
+  const abs = Math.abs(minutes);
+  return `${date}T${seconds}${sign}${String(Math.floor(abs / 60)).padStart(2, "0")}:${String(abs % 60).padStart(2, "0")}`;
+}
+
+/** UTC instant of an HH:mm site-local time on the given calendar day (the later one when DST repeats it). */
+export function siteAt(date: string, time: string): Date {
+  const naive = Date.parse(`${date}T${time}:00Z`);
+  // Two passes settle the offset on both sides of a DST change.
+  let guess = naive - wallClock(naive).offsetMs;
+  guess = naive - wallClock(guess).offsetMs;
+  return new Date(guess);
+}
+
+/** UTC instant of 00:00 site-local time on the given calendar day. */
+export function siteMidnight(date: string): Date {
+  return siteAt(date, "00:00");
 }
 
 export function addDays(date: string, days: number): string {
@@ -29,9 +64,10 @@ export function addDays(date: string, days: number): string {
   return new Date(t).toISOString().slice(0, 10);
 }
 
-const WEEKDAYS = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
+const WEEKDAYS = ["niedziela", "poniedziałek", "wtorek", "środa", "czwartek", "piątek", "sobota"];
 
-export function beijingWeekday(date: string): string {
+/** Polish weekday name of a calendar date ("poniedziałek"). */
+export function siteWeekday(date: string): string {
   return WEEKDAYS[new Date(`${date}T00:00:00Z`).getUTCDay()]!;
 }
 

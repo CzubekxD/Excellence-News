@@ -1,5 +1,5 @@
 // What the judging steps read about an article: loaded once per analysis and rendered per step.
-import { beijingDate, beijingTime } from "@aihot/contracts/time";
+import { siteDate, siteTime } from "@aihot/contracts/time";
 import { sql } from "../db.ts";
 import { collapseWhitespace, truncate } from "../lib/text.ts";
 import { produceImage } from "../media/images.ts";
@@ -41,7 +41,7 @@ export interface AnalyzeInputArticle {
  */
 export function withXArticle(xPost: Record<string, any> | null, article: { title?: string; text?: string } | null): Record<string, any> | null {
   if (!xPost || !article?.text) return xPost;
-  const parts = [String(xPost.text ?? "").trim(), article.title ? `【X 长文】${article.title}` : "【X 长文】", article.text];
+  const parts = [String(xPost.text ?? "").trim(), article.title ? `【Artykuł na X】${article.title}` : "【Artykuł na X】", article.text];
   return { ...xPost, text: parts.filter(Boolean).join("\n\n") };
 }
 
@@ -71,34 +71,34 @@ export async function loadAnalyzeInput(articleId: string): Promise<AnalyzeInputA
 }
 
 const KIND_LABEL: Record<string, string> = {
-  rss: "RSS", web_list: "网页", json_list: "网页接口", x_search: "X 帖子", mp_account: "微信公众号", external: "外部上报",
+  rss: "RSS", web_list: "strona", json_list: "API strony", x_search: "wpis na X", mp_account: "konto WeChat", external: "zgłoszenie zewnętrzne",
 };
 
 /** The material as the structure step reads it (source facts, text, link). */
 export function buildMaterial(a: AnalyzeInputArticle): string {
   // Conditions often occur at the end of an announcement. Use the existing body budget instead of
   // only its lead; beyond it, state the missing tail so it is not mistaken for complete evidence.
-  const body = (text: string) => text.length <= MAX_BODY_CHARS ? text : `${text.slice(0, MAX_BODY_CHARS)}\n【原文超过 ${MAX_BODY_CHARS} 字符，后文未提供】`;
+  const body = (text: string) => text.length <= MAX_BODY_CHARS ? text : `${text.slice(0, MAX_BODY_CHARS)}\n【Oryginał przekracza ${MAX_BODY_CHARS} znaków, dalszej części nie podano】`;
   const lines: string[] = [];
   lines.push("<source>");
-  lines.push(`名称：${a.source.name}`);
-  lines.push(`类型：${KIND_LABEL[a.source.kind] ?? a.source.kind}；分级：${a.source.tier}；一手来源：${a.source.firstParty ? "是" : "否"}`);
+  lines.push(`Nazwa: ${a.source.name}`);
+  lines.push(`Typ: ${KIND_LABEL[a.source.kind] ?? a.source.kind}; poziom: ${a.source.tier}; źródło z pierwszej ręki: ${a.source.firstParty ? "tak" : "nie"}`);
   lines.push("</source>");
   lines.push("<material>");
-  if (a.publishedAt) lines.push(`发布时间：${beijingDate(a.publishedAt)} ${beijingTime(a.publishedAt)}（北京时间）`);
-  if (a.author) lines.push(`作者：${a.author}`);
+  if (a.publishedAt) lines.push(`Data publikacji: ${siteDate(a.publishedAt)} ${siteTime(a.publishedAt)} (czas polski)`);
+  if (a.author) lines.push(`Autor: ${a.author}`);
   if (a.xPost) {
-    lines.push(`作者：${a.xPost.authorName ?? ""} (@${a.xPost.handle ?? ""})`);
-    lines.push(`帖子：\n${body(String(a.xPost.text ?? a.title))}`);
-    if (a.xPost.quoted?.text) lines.push(`引用的帖子（@${a.xPost.quoted.handle ?? ""}）：\n${body(String(a.xPost.quoted.text))}`);
-    if (a.translationZh) lines.push(`帖子中文译文：\n${truncate(a.translationZh, 4000)}`);
+    lines.push(`Autor: ${a.xPost.authorName ?? ""} (@${a.xPost.handle ?? ""})`);
+    lines.push(`Wpis:\n${body(String(a.xPost.text ?? a.title))}`);
+    if (a.xPost.quoted?.text) lines.push(`Wpis cytowany (@${a.xPost.quoted.handle ?? ""}):\n${body(String(a.xPost.quoted.text))}`);
+    if (a.translationZh) lines.push(`Polskie tłumaczenie wpisu:\n${truncate(a.translationZh, 4000)}`);
   } else {
-    lines.push(`标题：${collapseWhitespace(a.title)}`);
+    lines.push(`Tytuł: ${collapseWhitespace(a.title)}`);
     const original = a.bodyText ?? a.excerpt ?? "";
-    lines.push(original ? `正文：\n${body(original)}` : "正文：（无）");
-    if (a.translationZh && !a.bodyText) lines.push(`正文中文译文：\n${truncate(a.translationZh, 5000)}`);
+    lines.push(original ? `Treść:\n${body(original)}` : "Treść: (brak)");
+    if (a.translationZh && !a.bodyText) lines.push(`Polskie tłumaczenie treści:\n${truncate(a.translationZh, 5000)}`);
   }
-  lines.push(`原文链接：${a.url}`);
+  lines.push(`Link do oryginału: ${a.url}`);
   lines.push("</material>");
   return lines.join("\n");
 }

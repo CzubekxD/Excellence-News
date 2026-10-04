@@ -1,1 +1,1 @@
-(原文为空，请输出 summary_zh: 空字符串，不要根据标题脑补内容)
+(Oryginał nie ma treści: zwróć summary_pl: pusty napis i nie dopowiadaj treści na podstawie tytułu)

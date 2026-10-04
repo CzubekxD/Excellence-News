@@ -1,13 +1,13 @@
-# 站点
+# Serwis
 
-这个站自己的东西：名字、文案、品牌、页面，以及启用哪些模块。步骤见 [把它改成你的行业](../docs/customize.md)。
+Wszystko, co należy do tego konkretnego serwisu: nazwa, teksty, marka, strony i włączone moduły. Opis krok po kroku: [docs/pl/dostosowanie.md](../docs/pl/dostosowanie.md).
 
-| 文件 | 内容 |
+| Plik | Zawartość |
 |---|---|
-| `site.ts` | 站名、行业词、出刊时间、首页和关于页文案、分享图文字、条目与日报周报月报上的说法、公开接口的分类、备案号 |
-| `models.ts` | 具名的模型和每一步默认用哪个（没写的步骤用 `.env` 里配的那一个） |
-| `brand/` | 图标、Logo（`Logo.tsx`）、分享图和海报上的字标（`wordmark.svg`、`wordmark-dark.svg`，可选）、日报周报月报的报头字（`nameplates/`）、关于页的二维码（`contact/`，可选） |
-| `pages/` | 使用规则、隐私说明（模板，上线前按实际情况改写） |
-| `public/` | 发布在网站根目录的固定文件（站名、地址等占位符替换后发布）：`robots.txt`、`manifest.webmanifest`、`openapi-v1.json`，以及可选的 `.well-known/security.txt` |
-| `changelog.json` | 更新日志 |
-| `modules/` | 启用哪些模块：`index.ts`、`server.ts`、`web.ts` 三份清单，列出仓库根目录 `modules/<名字>/` 里要用的模块，默认都为空，见 [架构](../docs/architecture.md#模块) 的“模块” |
+| `site.ts` | Nazwa, słowo branżowe, godziny wydań, teksty strony głównej i „O serwisie”, napisy na obrazkach udostępniania, sformułowania dziennika, tygodnika i miesięcznika, kategorie publicznego API |
+| `models.ts` | Modele nazwane (Gemini, Groq, Cerebras, Mistral) i domyślny model każdego kroku |
+| `brand/` | Ikony, logo (`Logo.tsx`), opcjonalne znaki słowne na obrazkach (`wordmark.svg`, `wordmark-dark.svg`), winiety wydań (`nameplates/`, generowane przez `scripts/nameplates.ts`), opcjonalne kody QR (`contact/`) |
+| `pages/` | Zasady korzystania i prywatność (szablony do uzupełnienia przed startem) |
+| `public/` | Pliki publikowane w katalogu głównym serwisu (z podmienionymi nazwą i adresem): `robots.txt`, `manifest.webmanifest`, `openapi-v1.json`, opcjonalnie `.well-known/security.txt` |
+| `changelog.json` | Dziennik zmian |
+| `modules/` | Włączone moduły: listy `index.ts`, `server.ts`, `web.ts` z modułami z katalogu `modules/<nazwa>/` (domyślnie puste) |

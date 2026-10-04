@@ -1,34 +1,34 @@
-# 使用规则
+# Zasady korzystania
 
-这是开源框架自带的模板。上线前请按你的实际情况改写（运营主体、允许和不允许的用途、联系方式），必要时请专业人士审阅。
+To szablon dołączony do otwartego frameworka. Przed startem serwisu dopasuj go do swojej sytuacji (kto prowadzi serwis, jakie zastosowania dopuszczasz, jak się skontaktować), a w razie potrzeby skonsultuj z prawnikiem.
 
-| 项 | 值 |
+| Pozycja | Wartość |
 |---|---|
-| 版本 | 请填写 |
-| 生效日期 | 请填写 |
-| 运营主体 | 请填写 |
-| 联系方式 | 请填写 |
+| Wersja | do uzupełnienia |
+| Obowiązuje od | do uzupełnienia |
+| Prowadzący serwis | do uzupełnienia |
+| Kontakt | do uzupełnienia |
 
-页首说明：
+Wstęp na górze strony:
 
-> 本站聚合公开信源，用模型生成中文摘要与精选，原文版权归各来源所有。网页、RSS、公开 API 与 MCP 均可匿名使用。
+> Serwis zbiera publiczne źródła i z pomocą modeli językowych tworzy polskie streszczenia i wybór wiadomości; prawa do oryginałów należą do ich wydawców. Ze stron, RSS, publicznego API i MCP można korzystać anonimowo.
 
-## 1. 内容与版权
+## 1. Treść i prawa autorskie
 
-本站展示的标题、摘要和推荐理由由模型根据公开来源生成，可能有误，重要信息请以原文为准。原文版权归各来源所有；站内只在来源允许时展示全文，其余只展示摘要和原文链接。
+Tytuły, streszczenia i uzasadnienia „Dlaczego warto” tworzy model na podstawie publicznych źródeł; mogą zawierać błędy, więc ważne informacje sprawdzaj w oryginale. Prawa do oryginałów należą do ich wydawców; pełna treść pojawia się w serwisie tylko wtedy, gdy źródło na to pozwala, w pozostałych przypadkach tylko streszczenie i link.
 
-## 2. 来源方的更正与下架
+## 2. Poprawki i usunięcia na prośbę wydawcy
 
-如果你是来源方，希望更正、下架或调整展示方式，请通过反馈页联系我们，我们会尽快处理。
+Jeśli jesteś wydawcą i chcesz poprawki, usunięcia albo innego sposobu prezentacji, napisz przez stronę opinii; zajmiemy się tym jak najszybciej.
 
-## 3. 使用本站的数据
+## 3. Korzystanie z danych serwisu
 
-请写明你允许的用途（例如个人阅读、组织内部使用），以及需要事先取得你同意的用途（例如商业产品、公开转载、批量再分发）。
+Opisz, na jakie zastosowania się zgadzasz (np. lektura prywatna, użytek wewnętrzny w organizacji), a które wymagają wcześniejszej zgody (np. produkty komercyjne, publiczne przedruki, masowa redystrybucja).
 
-## 4. 接口与频率
+## 4. Interfejsy i częstotliwość
 
-RSS、公开 API 和 MCP 为匿名只读接口。请按响应中的缓存时间轮询，遇到 429 请遵守 Retry-After，不要并发重试。
+RSS, publiczne API i MCP to anonimowe interfejsy tylko do odczytu. Odpytuj je zgodnie z czasem buforowania z odpowiedzi; przy kodzie 429 respektuj Retry-After i nie ponawiaj zapytań równolegle.
 
-## 5. 免责
+## 5. Wyłączenie odpowiedzialności
 
-本站按“现状”提供，不保证内容完整、准确和持续可用。
+Serwis jest udostępniany w obecnym stanie, bez gwarancji kompletności, dokładności i ciągłej dostępności.

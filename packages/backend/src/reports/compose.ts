@@ -9,7 +9,7 @@ import { PLAIN_TERMS, RELEASE } from "@aihot/industry/taxonomy";
 import { promptText, promptVersion } from "../editorial/prompts.ts";
 import { modelFor } from "../editorial/models.ts";
 import { ENTITIES, isRelease } from "../editorial/vocabulary.ts";
-import { addDays, beijingAt, beijingDate, beijingTime, isoWeekLabel, isoWeekRange, monthRange } from "@aihot/contracts/time";
+import { addDays, siteAt, siteDate, siteTime, isoWeekLabel, isoWeekRange, monthRange } from "@aihot/contracts/time";
 import { sql } from "../db.ts";
 import { logError } from "../lib/log-error.ts";
 import { chatJson } from "../providers/llm.ts";
@@ -81,7 +81,7 @@ async function saveReport(kind: ReportKind, key: string, start: Date, end: Date,
 export async function composeDaily(date: string, reason?: string): Promise<{ key: string; entries: number }> {
   const previous = await savedReport("daily", date);
   if (previous && reason === undefined) return { key: date, entries: previous.entries };
-  const end = beijingAt(date, EDITION_TIMES.daily);
+  const end = siteAt(date, EDITION_TIMES.daily);
   const start = new Date(end.getTime() - 86400000);
   const edition = await dailyEdition(date, start, end);
   // An issue with nothing in it is a failure upstream, not a report: the run fails and is caught up later.
@@ -111,12 +111,12 @@ const PERIOD_EVENTS = { weekly: 20, monthly: 30 } as const;
 /** A section is introduced once it carries this many events; one or two are read faster than introduced. */
 const INTRO_EVENTS = 3;
 /** The longest overview and introduction an issue prints; the brief asks for less, writers overshoot. */
-const OVERVIEW_CHARS = { weekly: 240, monthly: 340 } as const;
-const INTRO_CHARS = 90;
+const OVERVIEW_CHARS = { weekly: 650, monthly: 900 } as const;
+const INTRO_CHARS = 220;
 /** The brief's values for each kind: its name, its span and how long its overview should be. */
 const BRIEF = {
-  weekly: { kindName: "周报", span: "一周", sentences: "三句话", chars: "160" },
-  monthly: { kindName: "月报", span: "个月", sentences: "三到四句话", chars: "240" },
+  weekly: { kindName: "Tygodnik", span: "tym tygodniu", sentences: "trzy zdania", chars: "450" },
+  monthly: { kindName: "Miesięcznik", span: "tym miesiącu", sentences: "trzy–cztery zdania", chars: "650" },
 } as const;
 
 export const PeriodSchema = z.object({
@@ -130,15 +130,15 @@ export const PeriodSchema = z.object({
  * what the issue carries.
  */
 export function periodPrompt(kind: "weekly" | "monthly", startDate: string, endDateInclusive: string, groups: Array<{ label: string; items: Candidate[] }>) {
-  const list = groups.map((g) => [`【${g.label}】`, ...g.items.map((e) => `- ${e.title}｜${e.summary.slice(0, 140)}`)].join("\n")).join("\n");
+  const list = groups.map((g) => [`【${g.label}】`, ...g.items.map((e) => `- ${e.title} | ${e.summary.slice(0, 350)}`)].join("\n")).join("\n");
   const introduced = groups.filter((g) => g.items.length >= INTRO_EVENTS).map((g) => g.label);
   return {
     system: promptText("report-period", {
       ...BRIEF[kind],
-      sections: introduced.length ? promptText("report-period-sections", { columns: introduced.map((l) => `「${l}」`).join("") }) : promptText("report-period-no-sections"),
+      sections: introduced.length ? promptText("report-period-sections", { columns: introduced.map((l) => `„${l}”`).join(", ") }) : promptText("report-period-no-sections"),
       sectionsExample: introduced.length ? `{"${introduced[0]}": "..."}` : "{}",
     }),
-    user: `本期：${startDate} 至 ${endDateInclusive}\n${list}`,
+    user: `Wydanie: od ${startDate} do ${endDateInclusive}\n${list}`,
   };
 }
 
@@ -147,28 +147,38 @@ const COMPANY_NAMES = Object.values(ENTITIES).map((e) => [e.name, ...e.aliases, 
 const PLAIN = new Set([...PLAIN_TERMS, SITE.name.toLowerCase()]);
 
 /**
- * Whether written text names only what the listed items name: every capitalised or numbered Latin token
- * (Acme, Nova-2.5, X1), every figure of three or more digits or with a decimal point or percent (845,
- * 129.3, 40%) and every company of the vocabulary appears in the items' own words; a company may be named
- * in either language (谷歌 for Google).
+ * Whether written text names only what the listed items name: every capitalised or numbered token inside a
+ * sentence (Acme, Nova-2.5, X1, Łódź), every figure of three or more digits or with a decimal mark or percent
+ * (845, 129,3, 40%) and every company of the vocabulary appears in the items' own words. Polish inflects
+ * names (Toyota → Toyoty), so a word counts as present when its stem does. A sentence's first word is
+ * capitalised by grammar and is checked only when it carries a digit or a second capital (OEE, TPS).
  */
 export function grounded(text: string, corpus: string): boolean {
   const known = corpus.toLowerCase();
   const companies = COMPANY_NAMES.filter((names) => names.some((n) => known.includes(n)));
-  const named = (word: string) => PLAIN.has(word) || known.includes(word) || companies.some((names) => names.includes(word));
-  const words = (text.match(/[A-Za-z][A-Za-z0-9.+-]*/g) ?? []).map((w) => w.replace(/[.+-]+$/, "")).filter((w) => /[A-Z0-9]/.test(w));
-  const figures = (text.match(/\d+(?:\.\d+)?%?/g) ?? []).filter((f) => f.length >= 3 || /[.%]/.test(f));
-  const lower = text.toLowerCase();
-  const mentioned = COMPANY_NAMES.filter((names) => names.some((n) => /\p{Script=Han}/u.test(n) && lower.includes(n)));
-  return words.every((w) => named(w.toLowerCase())) && figures.every((f) => known.includes(f)) && mentioned.every((names) => companies.includes(names));
+  const stem = (word: string) => [...word].slice(0, Math.max(4, [...word].length - 3)).join("");
+  const named = (word: string) => PLAIN.has(word) || known.includes(word) || known.includes(stem(word)) || companies.some((names) => names.includes(word));
+  const words: string[] = [];
+  for (const m of text.matchAll(/\p{L}[\p{L}\p{N}.+-]*/gu)) {
+    const w = m[0].replace(/[.+-]+$/, "");
+    if (!/[\p{Lu}\p{N}]/u.test(w)) continue;
+    const before = text.slice(0, m.index).trimEnd();
+    const sentenceStart = before === "" || /[.!?:„"(]$/.test(before);
+    if (sentenceStart && !/\p{N}|.\p{Lu}/u.test(w)) continue;
+    words.push(w);
+  }
+  const figures = (text.match(/\d+(?:[.,]\d+)?%?/g) ?? []).filter((f) => f.length >= 3 || /[.,%]/.test(f));
+  const figureKnown = (f: string) => known.includes(f) || known.includes(f.replace(",", ".")) || known.includes(f.replace(".", ","));
+  return words.every((w) => named(w.toLowerCase())) && figures.every(figureKnown);
 }
 
 /** The leading whole sentences of a text that fit in `max` characters; null when not even the first does. */
 export function fitted(text: string, max: number): string | null {
   let out = "";
-  for (const sentence of text.trim().match(/[^。！？]+(?:[。！？]+[」”’）]*|$)/g) ?? []) {
-    if ([...out + sentence].length > max) break;
-    out += sentence;
+  for (const sentence of text.trim().split(/(?<=[.!?。！？][”"»)]?)\s+(?=[\p{Lu}\d„"«])/u)) {
+    const next = out ? `${out} ${sentence}` : sentence;
+    if ([...next].length > max) break;
+    out = next;
   }
   return out.trim() || null;
 }
@@ -184,8 +194,8 @@ async function composePeriod(kind: "weekly" | "monthly", key: string, startDate:
   const previous = await savedReport(kind, key);
   if (previous && reason === undefined) return { key, entries: previous.entries };
   // The dailies' windows run from the edition time the day before the first to that time on the last.
-  const start = beijingAt(addDays(startDate, -1), EDITION_TIMES.daily);
-  const end = beijingAt(endDateInclusive, EDITION_TIMES.daily);
+  const start = siteAt(addDays(startDate, -1), EDITION_TIMES.daily);
+  const end = siteAt(endDateInclusive, EDITION_TIMES.daily);
   const { entries, issues } = await periodEntries(startDate, endDateInclusive);
   const top = entries.slice(0, PERIOD_EVENTS[kind]);
   if (!top.length) throw new Error(`${kind} ${key}: no daily entries in the period`);
@@ -218,7 +228,7 @@ async function composePeriod(kind: "weekly" | "monthly", key: string, startDate:
   const [lead] = top as [Candidate, ...Candidate[]];
   const content = {
     kind,
-    title: kind === "weekly" ? `${SITE.name} 周报 · ${key}` : `${SITE.name} 月报 · ${key}`,
+    title: kind === "weekly" ? `${SITE.name} Tygodnik · ${key}` : `${SITE.name} Miesięcznik · ${key}`,
     ...(kind === "weekly" ? { isoLabel: key } : { monthLabel: key }),
     periodStart: startDate,
     periodEnd: endDateInclusive,
@@ -249,22 +259,22 @@ export async function composeMonthly(label: string, reason?: string) {
 
 /** The newest daily due by `now`: today's from its edition time (Beijing), yesterday's before. */
 export function dueDaily(now = new Date()): string {
-  const today = beijingDate(now);
-  return beijingTime(now) >= EDITION_TIMES.daily ? today : addDays(today, -1);
+  const today = siteDate(now);
+  return siteTime(now) >= EDITION_TIMES.daily ? today : addDays(today, -1);
 }
 
 /** The newest weekly due by `now`: the last complete ISO week from its edition time on Monday, the one before until then. */
 export function dueWeekly(now = new Date()): string {
-  const today = beijingDate(now);
+  const today = siteDate(now);
   const dow = (new Date(`${today}T00:00:00Z`).getUTCDay() + 6) % 7;
-  const due = dow > 0 || beijingTime(now) >= EDITION_TIMES.weekly;
+  const due = dow > 0 || siteTime(now) >= EDITION_TIMES.weekly;
   return isoWeekLabel(addDays(today, -dow - (due ? 7 : 14)));
 }
 
 /** The newest monthly due by `now`: the last complete month from its edition time on the 1st, the one before until then. */
 export function dueMonthly(now = new Date()): string {
-  const [y, m, d] = beijingDate(now).split("-").map(Number) as [number, number, number];
-  const due = d > 1 || beijingTime(now) >= EDITION_TIMES.monthly;
+  const [y, m, d] = siteDate(now).split("-").map(Number) as [number, number, number];
+  const due = d > 1 || siteTime(now) >= EDITION_TIMES.monthly;
   const back = due ? 1 : 2;
   const month = (y * 12 + (m - 1) - back);
   return `${Math.floor(month / 12)}-${String((month % 12) + 1).padStart(2, "0")}`;

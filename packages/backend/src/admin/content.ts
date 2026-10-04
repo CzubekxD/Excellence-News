@@ -39,11 +39,11 @@ export async function normalizeXEncoding(id: string, input: { version: number; h
     requestId: z.string().regex(/^[\w-]{8,80}$/), reason: z.string().trim().min(1) }).parse(input);
   return sql.begin(async tx => {
     const [article] = await tx<XEncodingMaterial[]>`SELECT a.*,s.kind FROM articles a JOIN sources s ON s.id=a.source_id WHERE a.id=${id} FOR UPDATE OF a`;
-    if (!article) throw new Conflict("内容不存在");
+    if (!article) throw new Conflict("Treść nie istnieje");
     const [prior] = await tx<{ request_id: string | null; after: { result: XEncodingRepairResult } }[]>`
       SELECT request_id,after FROM audit_log WHERE subject=${`content:${id}`} AND action='content.normalize-x-encoding' ORDER BY id LIMIT 1`;
     if (prior) return prior.request_id === input.requestId ? prior.after.result : { articleId: id, revision: article.revision, status: "already-normalized" };
-    if (article.revision !== input.version || xEncodingMaterialHash(article) !== input.hash) throw new Conflict("材料已被修改，请重新核对编码修复预览");
+    if (article.revision !== input.version || xEncodingMaterialHash(article) !== input.hash) throw new Conflict("Materiał zmieniono, sprawdź ponownie podgląd naprawy kodowania");
     const plan = xEncodingRepairPlan(article);
     if (!plan.changed) return { articleId: id, revision: article.revision, status: "unchanged" };
     const [previous] = await tx`SELECT selected,eligible,visibility,fact_id,story_id,body_mode,selected_ready_at,visible_after FROM publications WHERE article_id=${id}`;
@@ -55,7 +55,7 @@ export async function normalizeXEncoding(id: string, input: { version: number; h
     if (previous) {
       await publishArticleTx(tx, id);
       const [next] = await tx`SELECT selected,eligible,visibility,fact_id,story_id,body_mode,selected_ready_at,visible_after FROM publications WHERE article_id=${id}`;
-      if (stableJson(previous) !== stableJson(next)) throw new Conflict("公开决定与当前投影不一致，编码修复不能改变选稿、范围或归组");
+      if (stableJson(previous) !== stableJson(next)) throw new Conflict("Decyzje publikacji różnią się od bieżącego stanu; naprawa kodowania nie może zmienić wyboru, zakresu ani grupowania");
     }
     await emit("articleChanged", { id, kind: "content", reason: "X text encoding normalized" }, tx);
     const result: XEncodingRepairResult = { articleId: id, revision: article.revision, status: "repaired" };
@@ -84,10 +84,10 @@ interface PublicationDateMaterial {
 /** A reviewed historical date correction; independent discovery order and editorial state are retained. */
 export function publicationDateCorrectionPlan(article: PublicationDateMaterial, publishedAt: string, now = Date.now()) {
   const date = new Date(publishedAt);
-  if (!Number.isFinite(date.getTime()) || date.toISOString() !== publishedAt) throw new Error("发布时间必须是完整、有效的 UTC ISO 日期");
-  if (date.getTime() > now) throw new Error("发布时间不能是未来日期");
+  if (!Number.isFinite(date.getTime()) || date.toISOString() !== publishedAt) throw new Error("Data publikacji musi być pełną, poprawną datą UTC w formacie ISO");
+  if (date.getTime() > now) throw new Error("Data publikacji nie może być z przyszłości");
   const recent = now - 7 * 86400_000;
-  if (!article.published_at || article.published_at.getTime() >= recent || date.getTime() >= recent) throw new Error("这里只校正新旧日期均早于七天窗口的历史内容");
+  if (!article.published_at || article.published_at.getTime() >= recent || date.getTime() >= recent) throw new Error("Tutaj poprawia się tylko treści archiwalne, których stara i nowa data są starsze niż 7 dni");
   const before = { publishedAt: article.published_at.toISOString(), publishedAtClaim: article.published_at_claim?.toISOString() ?? null,
     timelineAt: article.timeline_at.toISOString() };
   const timelineFollowsPublication = before.timelineAt === before.publishedAt;
@@ -118,16 +118,16 @@ export async function correctPublicationDate(id: string, input: { version: numbe
     requestId: z.string().regex(/^[\w-]{8,80}$/), reason: z.string().trim().min(1) }).parse(input);
   return sql.begin(async tx => {
     const [article] = await tx<PublicationDateMaterial[]>`SELECT * FROM articles WHERE id=${id} FOR UPDATE`;
-    if (!article) throw new Conflict("内容不存在");
+    if (!article) throw new Conflict("Treść nie istnieje");
     const [prior] = await tx<{ after: { publishedAt: string; result: PublicationDateCorrectionResult } }[]>`
       SELECT after FROM audit_log WHERE subject=${`content:${id}`} AND action='content.correct-publication-date'
         AND actor=${actor} AND request_id=${input.requestId} ORDER BY id LIMIT 1`;
     if (prior) {
-      if (prior.after.publishedAt !== input.publishedAt) throw new Conflict("同一个请求不能批准不同的发布时间");
+      if (prior.after.publishedAt !== input.publishedAt) throw new Conflict("Jedno zapytanie nie może zatwierdzić różnych dat publikacji");
       return prior.after.result;
     }
     const plan = publicationDateCorrectionPlan(article, input.publishedAt);
-    if (article.revision !== input.version || plan.hash !== input.hash) throw new Conflict("材料或日期已被修改，请重新核对日期校正预览");
+    if (article.revision !== input.version || plan.hash !== input.hash) throw new Conflict("Materiał lub data zostały zmienione, sprawdź ponownie podgląd korekty daty");
     if (!plan.changed) return { articleId: id, revision: article.revision, status: "unchanged", publishedAt: input.publishedAt };
     // Everything except date/order and freshness metadata must be identical after projection.
     const [previous] = await tx<{ decision: unknown }[]>`SELECT to_jsonb(p)-ARRAY['published_at','timeline_at','sort_at','revision','updated_at'] AS decision FROM publications p WHERE article_id=${id}`;
@@ -140,7 +140,7 @@ export async function correctPublicationDate(id: string, input: { version: numbe
         const old = previous.decision as Record<string, unknown>;
         const fresh = (next?.decision ?? {}) as Record<string, unknown>;
         const changed = Object.keys(old).filter(key => stableJson(old[key]) !== stableJson(fresh[key]));
-        throw new Conflict(`公开决定已变化，日期校正不能改变选稿、范围、内容或归组：${changed.join("、")}`);
+        throw new Conflict(`Decyzje publikacji się zmieniły; korekta daty nie może zmienić wyboru, zakresu, treści ani grupowania: ${changed.join(", ")}`);
       }
     }
     await emit("articleChanged", { id, kind: "content", reason: "verified historical publication date corrected" }, tx);
@@ -209,12 +209,12 @@ async function inHotRanking(id: string, tx: Tx): Promise<boolean> {
   return !!p?.story_id && ranking.entries.some((e) => e.storyId === Number(p.story_id));
 }
 
-const STALE = "这条内容的人工设置已被修改，请刷新后再操作";
+const STALE = "Ręczne ustawienia tej treści zostały zmienione, odśwież i spróbuj ponownie";
 
 async function overrideRow(id: string, tx: Tx) {
   // Use the same first lock as publication and automatic processing, including the first correction.
   const [article] = await tx`SELECT id FROM articles WHERE id = ${id} FOR UPDATE`;
-  if (!article) throw Object.assign(new Error("内容不存在"), { statusCode: 400 });
+  if (!article) throw Object.assign(new Error("Treść nie istnieje"), { statusCode: 400 });
   const [o] = await tx<{ fields: Record<string, unknown>; visibility: string | null; version: number }[]>`SELECT fields, visibility, version FROM editorial_overrides WHERE article_id = ${id}`;
   return o ?? { fields: {}, visibility: null, version: 0 };
 }

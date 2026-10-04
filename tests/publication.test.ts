@@ -4,7 +4,7 @@
 // snapshots answer conditional requests.
 import { CATEGORY_LABELS } from "@aihot/contracts/taxonomy";
 import { withSubject } from "@aihot/site";
-import { beijingDate } from "@aihot/contracts/time";
+import { siteDate } from "@aihot/contracts/time";
 import { ogEtag } from "@aihot/backend/media/og";
 import { posterEtag } from "@aihot/backend/media/poster";
 import { tag } from "./setup.ts";
@@ -49,7 +49,7 @@ async function article(): Promise<string> {
     sourceId: SOURCE, url: `https://example.com/${T}-${n}`, title: `Test ${n}`, bodyText: BODY, bodyHtml: `<p>${BODY}</p>`, bodyStatus: "ok", via: "fetch", publishedAt: new Date(),
   });
   await sql`INSERT INTO analyses (article_id, input_revision, origin, relevance, category, title_zh, summary_zh, reason_zh, score, selected)
-            VALUES (${articleId}, 1, 'rule', 'pass', 'ai-models', ${`标题${n}-${T}`}, ${`SUMMARY-${n}-${T}`}, '理由', 90, true)`;
+            VALUES (${articleId}, 1, 'rule', 'pass', 'lean', ${`标题${n}-${T}`}, ${`SUMMARY-${n}-${T}`}, '理由', 90, true)`;
   return articleId;
 }
 
@@ -438,7 +438,7 @@ test("share images keep detail metadata and access rules while conditional reads
   const d = JSON.parse((await get(`/api/site/items/${id}`)).body);
   const kicker = d.category ? CATEGORY_LABELS[d.category as keyof typeof CATEGORY_LABELS] : withSubject("动态");
   const source = d.source.name;
-  const date = beijingDate(d.timelineAt);
+  const date = siteDate(d.timelineAt);
   const card = { kicker, title: d.title, subtitle: d.summary, meta: `${source} · ${date}`,
     badge: d.selected && d.score !== null ? { value: String(Math.round(d.score)), label: "精选评分" } : null };
   const poster = { url: `${config.siteUrl}/items/${id}`, kicker, title: d.title, summary: d.summary, source, date, score: d.selected ? d.score : null };

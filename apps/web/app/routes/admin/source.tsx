@@ -18,7 +18,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   return adminGet<AdminSourceDetail>(request, `/api/admin/sources/${encodeURIComponent(params.id)}`);
 }
 
-export const meta: Route.MetaFunction = ({ loaderData }) => [{ title: `${loaderData?.source.name ?? "信源"} · ${SITE.name} 后台` }];
+export const meta: Route.MetaFunction = ({ loaderData }) => [{ title: `${loaderData?.source.name ?? "Źródło"} · panel ${SITE.name}` }];
 
 type Draft = Pick<AdminSource, "name" | "interval_minutes" | "tier" | "participation_mode" | "signal_group_id" | "first_party" | "owner_entity_id" | "site_fulltext" | "syndicate_fulltext"> & { tags: string; config: string };
 
@@ -59,7 +59,7 @@ export default function SourceDetail({ loaderData }: Route.ComponentProps) {
       config = JSON.parse(draft.config);
       setConfigError(null);
     } catch (e) {
-      setConfigError(`配置不是合法 JSON：${(e as Error).message}`);
+      setConfigError(`Konfiguracja nie jest poprawnym JSON: ${(e as Error).message}`);
       return null;
     }
     const next: Record<string, unknown> = {
@@ -105,85 +105,85 @@ export default function SourceDetail({ loaderData }: Route.ComponentProps) {
               if (r) setPreview(r);
             }}
           >
-            预览抓取
+            Podgląd pobierania
           </Button>
-          <Button busy={pending === "fetch"} onClick={() => run("POST", `${base}/fetch`, {}, { label: "fetch", success: "已加入采集队列" })}>
-            立即采集
+          <Button busy={pending === "fetch"} onClick={() => run("POST", `${base}/fetch`, {}, { label: "fetch", success: "Dodano do kolejki pobierania" })}>
+            Pobierz teraz
           </Button>
           <Button tone={s.enabled ? "danger" : "primary"} onClick={() => setDialog("toggle")}>
-            {s.enabled ? "暂停" : "恢复"}
+            {s.enabled ? "Wstrzymaj" : "Wznów"}
           </Button>
         </>
       }
     >
       <div className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-4">
         <Stat
-          label="健康"
+          label="Stan"
           value={
             <span className="inline-flex items-center gap-2 text-[18px]">
               <Dot tone={s.enabled ? healthTone(s.health) : "muted"} />
-              {s.enabled ? HEALTH_LABEL[s.health] ?? s.health : "已暂停"}
+              {s.enabled ? HEALTH_LABEL[s.health] ?? s.health : "Wstrzymane"}
             </span>
           }
-          hint={s.fail_count ? `连续失败 ${s.fail_count} 次` : `上次成功 ${s.last_ok_at ? bj(s.last_ok_at) : "—"}`}
+          hint={s.fail_count ? `Błędy z rzędu: ${s.fail_count}` : `Ostatni sukces ${s.last_ok_at ? bj(s.last_ok_at) : "—"}`}
         />
-        <Stat label="累计条目" value={num(stats.total)} />
-        <Stat label="近 7 天" value={num(stats.last7d)} />
-        <Stat label="入选精选" value={num(stats.selected)} />
+        <Stat label="Wpisy łącznie" value={num(stats.total)} />
+        <Stat label="Ostatnie 7 dni" value={num(stats.last7d)} />
+        <Stat label="Wybrane" value={num(stats.selected)} />
       </div>
       {s.last_error && s.health !== "ok" && <div className="mb-5 rounded-card bg-hot-soft px-4 py-3 text-[13px] text-hot ring-1 ring-hot/20">{s.last_error}</div>}
 
       {preview && (
-        <Card className="mb-5" title={`预览：${preview.count} 条（${preview.ms}ms，未入库）`} right={<button onClick={() => setPreview(null)}>收起</button>}>
+        <Card className="mb-5" title={`Podgląd: ${preview.count} wpisów (${preview.ms} ms, bez zapisu)`} right={<button onClick={() => setPreview(null)}>Zwiń</button>}>
           {preview.items.length ? (
             <ul className="space-y-2.5">
               {preview.items.map((i) => (
                 <li key={i.url} className="text-[13px]">
                   <a href={i.url} target="_blank" rel="noreferrer" className="font-medium text-ink hover:text-accent">{i.title}</a>
-                  <div className="text-[12px] text-ink-4">{i.publishedAt ? bj(i.publishedAt, true) : "无发布时间"} · {i.url}</div>
+                  <div className="text-[12px] text-ink-4">{i.publishedAt ? bj(i.publishedAt, true) : "brak daty publikacji"} · {i.url}</div>
                   {i.excerpt && <div className="mt-0.5 line-clamp-2 text-[12.5px] text-ink-3">{i.excerpt}</div>}
                 </li>
               ))}
             </ul>
           ) : (
-            <Empty>没有抓到条目。检查地址、选择器或登录要求。</Empty>
+            <Empty>Nie pobrano wpisów. Sprawdź adres, selektory albo wymóg logowania.</Empty>
           )}
         </Card>
       )}
 
       <div className="grid gap-5 xl:grid-cols-[1fr_380px]">
         <div className="space-y-5">
-          <Card title="设置" right={<span>版本 {bj(s.updated_at, true)}</span>}>
+          <Card title="Ustawienia" right={<span>Wersja {bj(s.updated_at, true)}</span>}>
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="名称">
+              <Field label="Nazwa">
                 <Input value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
               </Field>
-              <Field label="采集间隔（分钟）">
+              <Field label="Co ile pobierać (minuty)">
                 <Input type="number" min={1} max={1440} value={draft.interval_minutes} onChange={(e) => setDraft({ ...draft, interval_minutes: Number(e.target.value) })} />
               </Field>
-              <Field label="参与方式" hint="氛围只作热点讨论证据，不单独成为内容">
+              <Field label="Tryb udziału" hint="Sygnał tylko potwierdza, że temat jest omawiany, i nie staje się osobnym wpisem">
                 <Select value={draft.participation_mode} onChange={(e) => setDraft({ ...draft, participation_mode: e.target.value })}>
                   {Object.entries(MODE_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                 </Select>
               </Field>
-              <Field label="等级" hint="仅 T1 为一手信源">
+              <Field label="Poziom" hint="Tylko T1 to źródła z pierwszej ręki">
                 <Select value={draft.tier} onChange={(e) => setDraft({ ...draft, tier: e.target.value })}>
                   {Object.entries(TIER_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                 </Select>
               </Field>
-              <Field label="讨论分组 ID" hint="同一机构的多个账号共用，热度只算一次">
+              <Field label="ID grupy dyskusji" hint="Wspólne dla kilku kont jednej organizacji; popularność liczona raz">
                 <Input value={draft.signal_group_id ?? ""} onChange={(e) => setDraft({ ...draft, signal_group_id: e.target.value })} />
               </Field>
-              <Field label="运营主体 ID">
+              <Field label="ID podmiotu prowadzącego">
                 <Input value={draft.owner_entity_id ?? ""} onChange={(e) => setDraft({ ...draft, owner_entity_id: e.target.value })} />
               </Field>
-              <Field label="标签（逗号分隔）">
+              <Field label="Tagi (po przecinku)">
                 <Input value={draft.tags} onChange={(e) => setDraft({ ...draft, tags: e.target.value })} />
               </Field>
               <div className="flex flex-col justify-end gap-2 text-[13px] text-ink-2">
                 {([
-                  ["site_fulltext", "站内可展示全文"],
-                  ["syndicate_fulltext", "对外接口可带全文"],
+                  ["site_fulltext", "Pełny tekst na stronie"],
+                  ["syndicate_fulltext", "Pełny tekst w API i kanałach"],
                 ] as const).map(([k, label]) => (
                   <label key={k} className="inline-flex items-center gap-2">
                     <input type="checkbox" className="size-4 accent-[var(--accent)]" checked={draft[k]} onChange={(e) => setDraft({ ...draft, [k]: e.target.checked })} />
@@ -193,75 +193,75 @@ export default function SourceDetail({ loaderData }: Route.ComponentProps) {
               </div>
             </div>
             <div className="mt-4">
-              <Field label="采集配置（JSON）">
+              <Field label="Konfiguracja pobierania (JSON)">
                 <Textarea className="font-mono !text-[12px]" rows={Math.min(18, draft.config.split("\n").length + 1)} value={draft.config} onChange={(e) => setDraft({ ...draft, config: e.target.value })} spellCheck={false} />
               </Field>
               {configError && <div className="mt-1 text-[12.5px] text-hot">{configError}</div>}
             </div>
             <div className="mt-4 flex items-center justify-end gap-2">
-              {changes > 0 && <span className="text-[12.5px] text-ink-3">{changes} 项改动未保存</span>}
-              <Button tone="ghost" disabled={!changes} onClick={() => setDraft(draftOf(s))}>还原</Button>
-              <Button tone="primary" disabled={!changes} onClick={() => patch() && setDialog("save")}>保存</Button>
+              {changes > 0 && <span className="text-[12.5px] text-ink-3">Niezapisane zmiany: {changes}</span>}
+              <Button tone="ghost" disabled={!changes} onClick={() => setDraft(draftOf(s))}>Cofnij</Button>
+              <Button tone="primary" disabled={!changes} onClick={() => patch() && setDialog("save")}>Zapisz</Button>
             </div>
           </Card>
 
-          <Card title="最近条目" pad={false}>
+          <Card title="Ostatnie wpisy" pad={false}>
             <DataTable
               rows={items}
               rowKey={(r) => r.id}
-              empty="还没有采集到内容"
+              empty="Jeszcze nic nie pobrano"
               columns={[
                 {
                   key: "t",
-                  label: "标题",
+                  label: "Tytuł",
                   render: (r) => (
                     <Link to={`/admin/content/${r.id}`} className="line-clamp-2 min-w-[260px] text-ink hover:text-accent">{r.title_zh || r.title}</Link>
                   ),
                 },
-                { key: "s", label: "状态", render: (r) => <span className="flex gap-1">{r.selected && <Badge tone="accent">精选</Badge>}{r.visibility && r.visibility !== "public" && <Badge tone="warn">{VISIBILITY_LABEL[r.visibility]}</Badge>}<Badge>{r.processing_state}</Badge></span> },
-                { key: "d", label: "发现", render: (r) => <Time at={r.discovered_at} /> },
+                { key: "s", label: "Stan", render: (r) => <span className="flex gap-1">{r.selected && <Badge tone="accent">Wybrane</Badge>}{r.visibility && r.visibility !== "public" && <Badge tone="warn">{VISIBILITY_LABEL[r.visibility]}</Badge>}<Badge>{r.processing_state}</Badge></span> },
+                { key: "d", label: "Znaleziono", render: (r) => <Time at={r.discovered_at} /> },
               ]}
             />
           </Card>
         </div>
 
         <div className="space-y-5">
-          <Card title="状态">
+          <Card title="Stan">
             <KV
               items={[
-                ["上次抓取", s.last_fetch_at ? bj(s.last_fetch_at, true) : null],
-                ["上次成功", s.last_ok_at ? bj(s.last_ok_at, true) : null],
-                ["下次抓取", s.next_fetch_at ? bj(s.next_fetch_at, true) : null],
-                ["创建", bj(s.created_at, true)],
+                ["Ostatnie pobranie", s.last_fetch_at ? bj(s.last_fetch_at, true) : null],
+                ["Ostatni sukces", s.last_ok_at ? bj(s.last_ok_at, true) : null],
+                ["Następne pobranie", s.next_fetch_at ? bj(s.next_fetch_at, true) : null],
+                ["Utworzono", bj(s.created_at, true)],
               ]}
             />
-            {s.cursor && <div className="mt-3"><Json value={s.cursor} label="游标" /></div>}
+            {s.cursor && <div className="mt-3"><Json value={s.cursor} label="Kursor" /></div>}
           </Card>
-          <Card title="采集记录" pad={false}>
+          <Card title="Historia pobrań" pad={false}>
             <DataTable
               dense
               rows={runs}
               rowKey={(r) => r.id}
-              empty="还没有采集记录"
+              empty="Brak historii pobrań"
               columns={[
-                { key: "at", label: "时间", render: (r) => <span className="num whitespace-nowrap">{bj(r.started_at)}</span> },
+                { key: "at", label: "Czas", render: (r) => <span className="num whitespace-nowrap">{bj(r.started_at)}</span> },
                 {
                   key: "st",
-                  label: "结果",
+                  label: "Wynik",
                   render: (r) => (
                     <span className="inline-flex gap-1">
                       <Badge tone={r.status === "ok" ? "ok" : r.status === "failed" ? "bad" : "muted"} title={r.error ?? undefined}>{r.status}</Badge>
-                      {!!r.detail?.dropped && <Badge tone="bad" title="有一段更早的帖子没能读完，其中的内容可能漏采">可能漏采</Badge>}
-                      {!r.detail?.dropped && !!r.detail?.backlog && <Badge tone="warn" title="帖子多于一轮能读的页数，余下的在后面几轮接着读">续读 {r.detail.backlog} 段</Badge>}
+                      {!!r.detail?.dropped && <Badge tone="bad" title="Nie udało się doczytać fragmentu starszych wpisów; część mogła zostać pominięta">możliwe braki</Badge>}
+                      {!r.detail?.dropped && !!r.detail?.backlog && <Badge tone="warn" title="Wpisów było więcej, niż mieści jedna runda; resztę doczytają kolejne">do doczytania: {r.detail.backlog}</Badge>}
                     </span>
                   ),
                 },
-                { key: "n", label: "发现/新增", align: "right", render: (r) => `${r.found_count ?? "—"}/${r.new_count ?? "—"}` },
-                { key: "ms", label: "耗时", align: "right", render: (r) => duration(r.started_at, r.finished_at) },
+                { key: "n", label: "Znalezione/nowe", align: "right", render: (r) => `${r.found_count ?? "—"}/${r.new_count ?? "—"}` },
+                { key: "ms", label: "Czas trwania", align: "right", render: (r) => duration(r.started_at, r.finished_at) },
               ]}
             />
           </Card>
-          <Card title="修改记录">
+          <Card title="Historia zmian">
             {history.length ? (
               <ul className="space-y-3 text-[12.5px]">
                 {history.map((h, i) => (
@@ -272,7 +272,7 @@ export default function SourceDetail({ loaderData }: Route.ComponentProps) {
                 ))}
               </ul>
             ) : (
-              <Empty>没有人工修改</Empty>
+              <Empty>Brak ręcznych zmian</Empty>
             )}
           </Card>
         </div>
@@ -280,27 +280,27 @@ export default function SourceDetail({ loaderData }: Route.ComponentProps) {
 
       <ReasonDialog
         open={dialog === "save"}
-        title="保存信源设置"
-        description={`将修改：${Object.keys(patchPreview(draft, s)).join("、") || "无"}`}
+        title="Zapisz ustawienia źródła"
+        description={`Zmienione pola: ${Object.keys(patchPreview(draft, s)).join(", ") || "brak"}`}
         busy={pending === "save"}
         onClose={() => setDialog(null)}
         onSubmit={async (reason) => {
           const p = patch();
           if (!p) return false;
-          const r = await run("PATCH", base, { patch: p, version: new Date(s.updated_at).toISOString(), reason }, { label: "save", success: "已保存" });
+          const r = await run("PATCH", base, { patch: p, version: new Date(s.updated_at).toISOString(), reason }, { label: "save", success: "Zapisano" });
           return r !== null;
         }}
       />
       <ReasonDialog
         open={dialog === "toggle"}
-        title={s.enabled ? "暂停这个信源" : "恢复这个信源"}
-        description={s.enabled ? "暂停后不再采集，已有内容和历史保留。" : "恢复后会立即排队采集一次。"}
+        title={s.enabled ? "Wstrzymaj to źródło" : "Wznów to źródło"}
+        description={s.enabled ? "Po wstrzymaniu źródło nie jest pobierane; dotychczasowe treści i historia zostają." : "Po wznowieniu od razu trafi do kolejki pobierania."}
         danger={s.enabled}
-        confirmLabel={s.enabled ? "暂停" : "恢复"}
+        confirmLabel={s.enabled ? "Wstrzymaj" : "Wznów"}
         busy={pending === "toggle"}
         onClose={() => setDialog(null)}
         onSubmit={async (reason) => {
-          const r = await run("PATCH", base, { patch: { enabled: !s.enabled }, version: new Date(s.updated_at).toISOString(), reason }, { label: "toggle", success: s.enabled ? "已暂停" : "已恢复" });
+          const r = await run("PATCH", base, { patch: { enabled: !s.enabled }, version: new Date(s.updated_at).toISOString(), reason }, { label: "toggle", success: s.enabled ? "Wstrzymano" : "Wznowiono" });
           return r !== null;
         }}
       />

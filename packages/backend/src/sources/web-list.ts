@@ -6,7 +6,7 @@ import { collapseWhitespace, stripTags } from "../lib/text.ts";
 import { readable, type ExtractedBody } from "../content/extract.ts";
 import { sanitizeBody } from "../content/sanitize.ts";
 import { jinaRead } from "../providers/jina.ts";
-import { articleUtcOffset, parseLooseDate } from "./dates.ts";
+import { articleUtcOffset, DEFAULT_UTC_OFFSET, parseLooseDate } from "./dates.ts";
 import { FetchError, type Candidate, type SourceRow } from "./types.ts";
 
 const JINA_PREFIX = "https://r.jina.ai/";
@@ -112,7 +112,7 @@ async function fetchListingText(source: SourceRow): Promise<{ text: string; viaJ
 }
 
 /** A listing title that is no headline: a label that swallowed its summary, or a call to action. */
-export const isCallToActionTitle = (title: string) => /^(read more|read the blog|learn more|continue reading|more|阅读全文|阅读更多|查看详情|了解更多)$/i.test(title.trim());
+export const isCallToActionTitle = (title: string) => /^(read more|read the blog|learn more|continue reading|more|阅读全文|阅读更多|查看详情|了解更多|czytaj więcej|więcej|zobacz więcej|dowiedz się więcej|lire la suite|en savoir plus|leer más|seguir leyendo)$/i.test(title.trim());
 export const needsTitle = (title: string) => title.length > 100 || isCallToActionTitle(title);
 
 export function fromMarkdown(md: string, base: string, source: SourceRow): Candidate[] {
@@ -187,7 +187,7 @@ export function fromHtml(html: string, base: string, source: SourceRow): Candida
 const DATE_HEADING = /^(?:[^\d:：]{1,12}[:：])?\s*(\d{4})[-/.年](\d{1,2})[-/.月](\d{1,2})日?$/;
 
 /** The day a date heading names, at midnight in the source's offset (Date.parse would read "时间: …" in the host's zone). */
-function headingDate(title: string, utcOffset = "+08:00"): Date | null | undefined {
+function headingDate(title: string, utcOffset = DEFAULT_UTC_OFFSET): Date | null | undefined {
   const m = DATE_HEADING.exec(title);
   if (!m) return undefined;
   return parseLooseDate(`${m[1]}/${m[2]}/${m[3]}`, utcOffset);

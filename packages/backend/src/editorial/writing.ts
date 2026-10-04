@@ -2,6 +2,8 @@
 // title/summary prompts for everything else, the output parsing and the deterministic guards. The
 // wording lives in the industry pack (industry/prompts/); a failed guard falls back without a repair call.
 import { IDENTITY_CONTEXT_ALIASES, IDENTITY_LEXICON, PUBLISHER_DOMAINS } from "@aihot/industry/taxonomy";
+import { siteDate } from "@aihot/contracts/time";
+import { looksPolish } from "../lib/language.ts";
 import { onlyXArticleLink } from "../sources/x.ts";
 import type { AnalyzeInputArticle } from "./input.ts";
 import { promptText } from "./prompts.ts";
@@ -20,18 +22,13 @@ export function clampText(s: string, maxChars: number): string {
   return codepoints.length <= maxChars ? s : codepoints.slice(0, maxChars).join("") + "…";
 }
 
-export function looksZh(s: string): boolean {
-  if (!/[一-鿿]/.test(s)) return false;
-  if (/[぀-ヿ]/.test(s)) return false; // Japanese kana
-  if (/[가-힯]/.test(s)) return false; // Hangul
-  return true;
-}
+/** Text already in the reader's language (Polish): it can stand as its own title. */
+export const looksReader = looksPolish;
 
-/** Short tweet: under 100 characters of Chinese, under 500 of other text. */
+/** Short post: under 500 characters. */
 export function isShortTweet(text: string): boolean {
   if (!text) return false;
-  const cjk = (text.match(/[一-鿿]/g) || []).length;
-  return text.length < (cjk > text.length * 0.3 ? 100 : 500);
+  return text.length < 500;
 }
 
 /** HTML, URLs (whose /2025/ paths models took for years) and entities out of article text. */
@@ -53,21 +50,11 @@ export function cleanArticleTextForLLM(s: string): string {
     .trim();
 }
 
-function chineseDensity(s: string): number {
-  const chinese = (s.match(/[一-鿿]/g) ?? []).length;
-  const total = s.replace(/\s+/g, "").length;
-  return total === 0 ? 0 : chinese / total;
-}
-
 const stripNoise = (s: string) => s.replace(/https?:\/\/\S+/g, " ").replace(/@[A-Za-z0-9_]+/g, " ").replace(/#[A-Za-z0-9_]+/g, " ");
 
-/** A short tweet in Chinese needs no translation; mixed or English ones do. */
+/** A short post in Polish needs no translation; one in any other language does. */
 export function needsShortTweetTranslation(text: string): boolean {
-  const clean = stripNoise(text);
-  if (!looksZh(clean)) return true;
-  if (chineseDensity(clean) < 0.65) return true;
-  const englishRuns = clean.match(/[A-Za-z][A-Za-z0-9+.#/-]*(?:\s+[A-Za-z][A-Za-z0-9+.#/-]*)+/g) ?? [];
-  return englishRuns.some((run) => run.replace(/\s+/g, "").length >= 10);
+  return !looksPolish(stripNoise(text));
 }
 
 // The material as the prefilter and the content understanding read it
@@ -76,44 +63,44 @@ export function needsShortTweetTranslation(text: string): boolean {
 const unfetchedXArticle = (a: AnalyzeInputArticle) => !!a.xPost && a.bodyStatus !== "ok" && onlyXArticleLink(String(a.xPost.text ?? ""));
 
 function materialQuality(a: AnalyzeInputArticle): string {
-  if (a.xPost) return "完整正文（来自 RSS / API 自带的 content 字段）";
-  if (a.bodyText) return a.source.fetchesBody ? "完整正文（抓自原始网页）" : "完整正文（来自 RSS / API 自带的 content 字段）";
-  if (a.excerpt) return "仅摘要（feed 未提供完整正文）";
-  if (a.bodyStatus === "unconfirmed") return "抓取失败，仅标题可用";
-  return "无有效文本";
+  if (a.xPost) return "pełna treść (z pola content w RSS / API)";
+  if (a.bodyText) return a.source.fetchesBody ? "pełna treść (pobrana ze strony oryginału)" : "pełna treść (z pola content w RSS / API)";
+  if (a.excerpt) return "tylko zajawka (kanał nie podaje pełnej treści)";
+  if (a.bodyStatus === "unconfirmed") return "pobieranie nie powiodło się, dostępny tylko tytuł";
+  return "brak użytecznego tekstu";
 }
 
 /** The material as the prefilter and the content understanding read it. */
 export function renderContext(a: AnalyzeInputArticle, opts: { annotateQuoted?: boolean } = {}): string {
   const lines: string[] = [];
-  lines.push(`【来源】${a.source.name}（${a.source.kind}，tier=${a.source.tier || "未分级"}）`);
-  if (a.source.tags?.length) lines.push(`【来源标签】${a.source.tags.join(", ")}`);
+  lines.push(`【Źródło】${a.source.name} (${a.source.kind}, tier=${a.source.tier || "bez poziomu"})`);
+  if (a.source.tags?.length) lines.push(`【Tagi źródła】${a.source.tags.join(", ")}`);
   const name = a.xPost?.authorName || a.author;
   const handle = a.xPost?.handle;
-  if (name || handle) lines.push(`【作者】${[name, handle ? `@${handle}` : null].filter(Boolean).join(" · ")}`);
-  if (a.publishedAt) lines.push(`【发布时间】${a.publishedAt.toISOString()}`);
+  if (name || handle) lines.push(`【Autor】${[name, handle ? `@${handle}` : null].filter(Boolean).join(" · ")}`);
+  if (a.publishedAt) lines.push(`【Data publikacji】${a.publishedAt.toISOString()}`);
   const media = (a.xPost?.media ?? a.media ?? []) as Array<{ kind?: string }>;
   const images = media.filter((m) => m.kind === "image").length;
   const videos = media.filter((m) => m.kind === "video").length;
-  const mediaParts = [images ? `${images} 张图` : null, videos ? `${videos} 个视频` : null, unfetchedXArticle(a) ? "含 X 长文链接（正文未抓到）" : null].filter(Boolean);
-  if (mediaParts.length) lines.push(`【媒体】${mediaParts.join(" · ")}`);
-  lines.push(`【原文链接】${a.url}`);
-  lines.push(`【标题】${a.title}`);
+  const mediaParts = [images ? `obrazy: ${images}` : null, videos ? `wideo: ${videos}` : null, unfetchedXArticle(a) ? "link do długiego artykułu na X (treść niepobrana)" : null].filter(Boolean);
+  if (mediaParts.length) lines.push(`【Media】${mediaParts.join(" · ")}`);
+  lines.push(`【Link do oryginału】${a.url}`);
+  lines.push(`【Tytuł】${a.title}`);
   const quoted = a.xPost?.quoted?.text ? a.xPost.quoted : null;
   if (quoted) {
-    const label = quoted.handle ? `@${quoted.handle}` : "原推";
+    const label = quoted.handle ? `@${quoted.handle}` : "wpis oryginalny";
     if (opts.annotateQuoted) {
-      lines.push(`【引用 ${label}】（以下是作者转发/引用的**他人**内容，不是作者本人的产出）`);
+      lines.push(`【Cytat ${label}】(poniżej treść **innej osoby**, którą autor udostępnia lub cytuje; to nie jest jego własny tekst)`);
       lines.push(String(quoted.text));
     } else {
-      lines.push(`【引用 ${label}】${quoted.text}`);
+      lines.push(`【Cytat ${label}】${quoted.text}`);
     }
   }
   lines.push("");
-  lines.push(opts.annotateQuoted && quoted ? "【正文（作者自己的内容）】" : "【正文】");
-  lines.push(capBody(a.xPost ? String(a.xPost.text ?? a.title) : (a.bodyText ?? a.excerpt ?? "(无正文)")));
+  lines.push(opts.annotateQuoted && quoted ? "【Treść (własny tekst autora)】" : "【Treść】");
+  lines.push(capBody(a.xPost ? String(a.xPost.text ?? a.title) : (a.bodyText ?? a.excerpt ?? "(brak treści)")));
   lines.push("");
-  lines.push(`【材料质量】${materialQuality(a)}`);
+  lines.push(`【Jakość materiału】${materialQuality(a)}`);
   return lines.join("\n");
 }
 
@@ -126,7 +113,7 @@ export function missingEvidence(a: AnalyzeInputArticle): boolean {
 }
 
 export const understandUser = (a: AnalyzeInputArticle) =>
-  ["请按系统规则理解以下单篇材料，一次返回全部六个字段。", renderContext(a, { annotateQuoted: true })].join("\n\n");
+  ["Zgodnie z regułami systemowymi zrozum poniższy pojedynczy materiał i zwróć naraz wszystkie sześć pól.", renderContext(a, { annotateQuoted: true })].join("\n\n");
 
 // Identity context and guard
 
@@ -200,9 +187,9 @@ function identityContext(input: TranslateInput) {
 function identityPrompt(input: TranslateInput): string {
   const ctx = identityContext(input);
   const facts: string[] = [];
-  if (ctx.publisher) facts.push(`文档发布域主体=${lexiconName(ctx.publisher) ?? ctx.publisher}`);
-  if (ctx.owner) facts.push(`来源账号主体=${lexiconName(ctx.owner) ?? ctx.owner}`);
-  return promptText("identity-context", { facts: facts.length > 0 ? facts.join("；") : "未识别到明确发布主体" });
+  if (ctx.publisher) facts.push(`wydawca według domeny=${lexiconName(ctx.publisher) ?? ctx.publisher}`);
+  if (ctx.owner) facts.push(`właściciel konta źródła=${lexiconName(ctx.owner) ?? ctx.owner}`);
+  return promptText("identity-context", { facts: facts.length > 0 ? facts.join("; ") : "nie rozpoznano wyraźnego wydawcy" });
 }
 
 export interface IdentityGuard {
@@ -220,7 +207,7 @@ export function enforceIdentity(input: TranslateInput, copy: { titleZh: string; 
   const unsupportedTitleEntityIds = matchEntityIds([copy.titleZh]).filter((id) => !allowed.has(id));
   const unsupportedSummaryEntityIds = matchEntityIds([copy.summaryZh]).filter((id) => !allowed.has(id));
   return {
-    titleZh: unsupportedTitleEntityIds.length ? (looksZh(input.title) ? input.title : "") : copy.titleZh,
+    titleZh: unsupportedTitleEntityIds.length ? (looksPolish(input.title) ? input.title : "") : copy.titleZh,
     summaryZh: unsupportedSummaryEntityIds.length ? "" : copy.summaryZh,
     identityGuard: {
       outcome: unsupportedTitleEntityIds.length || unsupportedSummaryEntityIds.length ? "fallback" : "pass",
@@ -232,34 +219,44 @@ export function enforceIdentity(input: TranslateInput, copy: { titleZh: string; 
 
 // Answer-first summary length
 
-export function compactAnswerFirstSummary(summary: string, maxChars = 190): string {
+// Lengths of a Polish summary: two or three sentences, roughly 160–450 characters.
+const SUMMARY_MAX = 450;
+const SUMMARY_MIN_RICH = 160;
+const SUMMARY_MIN = 100;
+
+/** Sentences: a . ! ? followed by a capital (so "3.5 proc. w" and "m.in. kanban" stay whole). */
+function sentencesOf(text: string): string[] {
+  const parts = text.split(/(?<=[.!?。！？])\s+(?=[\p{Lu}\d„"«])/u).filter((p) => p.trim());
+  return parts.length ? parts.map((p) => `${p} `) : [text];
+}
+
+export function compactAnswerFirstSummary(summary: string, maxChars = SUMMARY_MAX): string {
   const text = summary.trim().replace(/\s*\n+\s*/g, " ");
   if (text.length <= maxChars) return text;
-  const sentences = text.match(/[^。！？!?]+[。！？!?]?/gu) ?? [text];
   let result = "";
-  for (const sentence of sentences) {
+  for (const sentence of sentencesOf(text)) {
     if ((result + sentence).length > maxChars) break;
     result += sentence;
-    if (result.length >= 80) break;
+    if (result.length >= SUMMARY_MIN_RICH) break;
   }
-  if (result.length >= 50) return result.trim();
+  if (result.trim().length >= SUMMARY_MIN) return result.trim();
   // The first sentence alone is too long: cut at a clause boundary, never inside a name or number.
-  const clauses = text.match(/[^，；：、,;:]+[，；：、,;:]?/gu) ?? [text];
+  const clauses = text.match(/[^,;:–]+[,;:–]?\s*/gu) ?? [text];
   result = "";
   for (const clause of clauses) {
     if ((result + clause).length + 1 > maxChars) break;
     result += clause;
-    if (result.length >= 80) break;
+    if (result.length >= SUMMARY_MIN_RICH) break;
   }
-  return result.length >= 50 ? `${result.replace(/[，；：、,;:]$/u, "")}。` : text;
+  return result.trim().length >= SUMMARY_MIN ? `${result.trim().replace(/[,;:–]$/u, "")}.` : text;
 }
 
 function answerFirstSummaryLengthOk(summary: string, input: TranslateInput): boolean {
   const trimmed = summary.trim();
   const sourceLength = (input.sourceKind === "x_search" ? input.text : cleanArticleTextForLLM(input.text)).trim().length;
-  const sentences = trimmed.split(/[。！？!?]+/u).map((p) => p.trim()).filter(Boolean).length;
-  const rich = sourceLength >= 500;
-  return trimmed.length <= 200 && trimmed.length >= (rich ? 80 : 50) && sentences <= 3 && (!rich || sentences >= 2);
+  const sentences = sentencesOf(trimmed).length;
+  const rich = sourceLength >= 1200;
+  return trimmed.length <= SUMMARY_MAX + 30 && trimmed.length >= (rich ? SUMMARY_MIN_RICH : SUMMARY_MIN) && sentences <= 3 && (!rich || sentences >= 2);
 }
 
 export const isShortTweetInput = (input: TranslateInput) => input.sourceKind === "x_search" && isShortTweet(input.mainText || input.title);
@@ -273,11 +270,11 @@ export function finalizeCopy(input: TranslateInput, copy: { titleZh: string; sum
 
 // Title/summary prompts for items the content understanding does not write
 
-const sourceName = (name?: string) => name?.trim() || "（未注明）";
+const sourceName = (name?: string) => name?.trim() || "(nie podano)";
 
 function anchorDate(d: Date | undefined): string {
-  if (!d || Number.isNaN(d.getTime())) return "未注明";
-  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Shanghai", year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
+  if (!d || Number.isNaN(d.getTime())) return "nie podano";
+  return siteDate(d);
 }
 
 export function buildArticlePrompt(input: TranslateInput): string {
@@ -294,7 +291,7 @@ export function buildArticlePrompt(input: TranslateInput): string {
 /** The quoted post's block, appended after a blank line when there is one. */
 function quotedBlock(input: TranslateInput, name: string): string {
   if (!input.quotedText) return "";
-  return `\n\n${promptText(name, { quotedLabel: input.quotedAuthor ? `@${input.quotedAuthor}` : "引用推文", quotedText: clampText(input.quotedText, 1500) })}`;
+  return `\n\n${promptText(name, { quotedLabel: input.quotedAuthor ? `@${input.quotedAuthor}` : "Wpis cytowany", quotedText: clampText(input.quotedText, 1500) })}`;
 }
 
 export function buildShortTweetPrompt(input: TranslateInput): string {
@@ -307,8 +304,8 @@ export function buildLongTweetPrompt(input: TranslateInput): string {
   return promptText("summarize-long-post", { sourceName: sourceName(input.sourceName), identity: identityPrompt(input), post }) + quotedBlock(input, "summarize-long-post-quoted");
 }
 
-/** Prompt lines a model sometimes repeats after its answer (来源：…, 【已核验身份上下文】…, 原始标题：…). */
-const ECHO_LINE = /^(来源[:：]|【已核验身份上下文】|这些事实只用于防止|原始标题[:：]|【时间锚点】)/;
+/** Prompt lines a model sometimes repeats after its answer (Źródło: …, 【Zweryfikowany kontekst tożsamości】…, Oryginalny tytuł: …). */
+const ECHO_LINE = /^(Źródło:|【Zweryfikowany kontekst tożsamości】|Te fakty służą wyłącznie|Oryginalny tytuł:|【Kotwica czasu】)/;
 
 /** The answer without prompt lines repeated at its end. */
 export function stripEcho(text: string): string {
@@ -317,7 +314,7 @@ export function stripEcho(text: string): string {
   return lines.join("\n").trim();
 }
 
-/** `title_zh:` / `summary_zh:` / `body_zh:` lines, with fallbacks for answers that drop the labels. */
+/** `title_pl:` / `summary_pl:` / `body_pl:` lines (older `_zh` labels too), with fallbacks for answers that drop the labels. */
 export function parseTranslateOutput(text: string): { titleZh: string; summaryZh: string; bodyZh: string } {
   let titleZh = "";
   let summaryZh = "";
@@ -328,11 +325,11 @@ export function parseTranslateOutput(text: string): { titleZh: string; summaryZh
   const lines = text.split(/\r?\n/);
   for (let i = 0; i < lines.length; i += 1) {
     const t = lines[i]!.trim();
-    const title = t.match(/^title_zh\s*[:：]\s*(.*)$/);
+    const title = t.match(/^title_(?:pl|zh)\s*[:：]\s*(.*)$/i);
     if (title) { titleZh = title[1]!.trim(); titleLine = i; continue; }
-    const summary = t.match(/^summary_zh\s*[:：]\s*(.*)$/);
+    const summary = t.match(/^summary_(?:pl|zh)\s*[:：]\s*(.*)$/i);
     if (summary) { summaryZh = summary[1]!.trim(); summaryLine = i; continue; }
-    const body = t.match(/^body_zh\s*[:：]\s*(.*)$/);
+    const body = t.match(/^body_(?:pl|zh)\s*[:：]\s*(.*)$/i);
     if (body) { bodyZh = body[1]!.trim(); bodyLine = i; continue; }
   }
   // A title without a labelled summary or body: the lines after it are the summary.
@@ -346,7 +343,7 @@ export function parseTranslateOutput(text: string): { titleZh: string; summaryZh
     for (let i = summaryLine + 1; i < lines.length; i += 1) {
       const t = lines[i]!.trim();
       if (!t) continue;
-      if (/^(title_zh|summary_zh|body_zh)\s*[:：]/.test(t)) break;
+      if (/^(?:title|summary|body)_(?:pl|zh)\s*[:：]/i.test(t)) break;
       more.push(t);
     }
     const parts = [summaryZh, ...more].filter(Boolean);
@@ -356,7 +353,7 @@ export function parseTranslateOutput(text: string): { titleZh: string; summaryZh
   if (bodyLine >= 0) {
     const more: string[] = [];
     for (let i = bodyLine + 1; i < lines.length; i += 1) {
-      if (/^(title_zh|summary_zh|body_zh)\s*[:：]/.test(lines[i]!.trim())) break;
+      if (/^(?:title|summary|body)_(?:pl|zh)\s*[:：]/i.test(lines[i]!.trim())) break;
       more.push(lines[i]!);
     }
     while (more.length && more[more.length - 1]!.trim() === "") more.pop();

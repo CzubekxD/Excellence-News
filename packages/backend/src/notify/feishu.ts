@@ -4,7 +4,7 @@
 // Everything outward is off unless explicitly enabled (development and tests stay silent).
 import { readFile, unlink } from "node:fs/promises";
 import path from "node:path";
-import { beijingDate, beijingTime } from "@aihot/contracts/time";
+import { siteDate, siteTime } from "@aihot/contracts/time";
 import { config, credential } from "../config.ts";
 import { sql } from "../db.ts";
 
@@ -84,32 +84,32 @@ export interface Finding {
 
 const MARK: Record<Exclude<Level, "digest">, string> = { now: "🔴", today: "🟠" };
 
-/** "9月29日" in Beijing time. */
-export function beijingDay(at: Date | string | number): string {
-  const [, m, d] = beijingDate(at).split("-").map(Number);
-  return `${m}月${d}日`;
+/** "29.09" in site time. */
+export function siteDay(at: Date | string | number): string {
+  const [, m, d] = siteDate(at).split("-").map(Number);
+  return `${String(d).padStart(2, "0")}.${String(m).padStart(2, "0")}`;
 }
 
-/** "9月29日 13:40" in Beijing time. */
-export const beijingStamp = (at: Date | string | number) => `${beijingDay(at)} ${beijingTime(at)}`;
+/** "29.09 13:40" in site time. */
+export const siteStamp = (at: Date | string | number) => `${siteDay(at)} ${siteTime(at)}`;
 
 export function duration(ms: number): string {
   const min = Math.max(1, Math.round(ms / 60_000));
-  if (min < 60) return `${min} 分钟`;
-  if (min < 48 * 60) return `${Math.floor(min / 60)} 小时${min % 60 ? ` ${min % 60} 分钟` : ""}`;
-  return `${Math.floor(min / 1440)} 天`;
+  if (min < 60) return `${min} min`;
+  if (min < 48 * 60) return `${Math.floor(min / 60)} godz.${min % 60 ? ` ${min % 60} min` : ""}`;
+  return `${Math.floor(min / 1440)} dni`;
 }
 
 /** The message for an open problem: first notice or a repeat. */
 export function formatAlert(f: Finding, since: Date, now: number, repeat = false): { title: string; lines: string[] } {
   const level = f.level === "digest" ? "today" : f.level;
-  const lasting = now - since.getTime() >= 60_000 ? `（已持续 ${duration(now - since.getTime())}）` : "";
-  const lines = [f.impact && `影响：${f.impact}`, f.heals && `会自己好吗：${f.heals}`, f.action && `你需要：${f.action}`, f.detail && `给 AI 的细节：${f.detail}`];
-  return { title: `${MARK[level]} ${repeat ? "仍未恢复：" : ""}${f.title}${lasting}`, lines: lines.filter((l): l is string => !!l) };
+  const lasting = now - since.getTime() >= 60_000 ? ` (trwa już ${duration(now - since.getTime())})` : "";
+  const lines = [f.impact && `Skutek: ${f.impact}`, f.heals && `Czy minie samo: ${f.heals}`, f.action && `Co zrobić: ${f.action}`, f.detail && `Szczegóły techniczne: ${f.detail}`];
+  return { title: `${MARK[level]} ${repeat ? "Nadal nie działa: " : ""}${f.title}${lasting}`, lines: lines.filter((l): l is string => !!l) };
 }
 
 export function formatRecovery(title: string, since: Date, now: number): { title: string; lines: string[] } {
-  return { title: `✅ 已恢复：${title}`, lines: [`持续 ${duration(now - since.getTime())}（${beijingStamp(since)} 起）`] };
+  return { title: `✅ Przywrócono: ${title}`, lines: [`trwało ${duration(now - since.getTime())} (od ${siteStamp(since)})`] };
 }
 
 /** Operations alert: the alert chat, falling back to the internal feedback chat — never a content group. */
@@ -136,14 +136,14 @@ const SCREENSHOT_GIVE_UP_MS = 24 * 3600_000;
 async function screenshotFor(fb: { id: number; screenshot_key: string | null; created_at: Date }): Promise<{ imageKey: string | null; note: string | null }> {
   const key = fb.screenshot_key;
   if (key?.startsWith("feishu:")) return { imageKey: key.slice("feishu:".length), note: null };
-  if (key === "gone:upload") return { imageKey: null, note: "（截图未能上传，已删除）" };
-  if (key === "gone:missing") return { imageKey: null, note: "（截图文件已不存在）" };
+  if (key === "gone:upload") return { imageKey: null, note: "(nie udało się wysłać zrzutu, usunięto go)" };
+  if (key === "gone:missing") return { imageKey: null, note: "(plik zrzutu już nie istnieje)" };
   if (!key?.startsWith("local:")) return { imageKey: null, note: null };
   const file = path.join(config.dataDir, "feedback-screenshots", key.slice("local:".length));
   const data = await readFile(file).catch(() => null);
   if (!data) {
     await sql`UPDATE feedback SET screenshot_key = 'gone:missing' WHERE id = ${fb.id}`;
-    return { imageKey: null, note: "（截图文件已不存在）" };
+    return { imageKey: null, note: "(plik zrzutu już nie istnieje)" };
   }
   try {
     const imageKey = await uploadImage(data, path.basename(file));
@@ -156,7 +156,7 @@ async function screenshotFor(fb: { id: number; screenshot_key: string | null; cr
     if (!(error instanceof ImageRefusedError) && Date.now() - fb.created_at.getTime() < SCREENSHOT_GIVE_UP_MS) throw error;
     await sql`UPDATE feedback SET screenshot_key = 'gone:upload' WHERE id = ${fb.id}`;
     await unlink(file).catch(() => {});
-    return { imageKey: null, note: "（截图未能上传，已删除）" };
+    return { imageKey: null, note: "(nie udało się wysłać zrzutu, usunięto go)" };
   }
 }
 
@@ -175,13 +175,13 @@ export async function forwardFeedbackToFeishu(id: number): Promise<"sent" | "dis
     const shot = await screenshotFor(fb);
     const paragraphs: unknown[][] = [
       [{ tag: "text", text: fb.content }],
-      [{ tag: "text", text: `页面：${fb.page_url ?? "—"}` }],
-      [{ tag: "text", text: `邮箱：${fb.email ?? "（未留）"}` }],
+      [{ tag: "text", text: `Strona: ${fb.page_url ?? "—"}` }],
+      [{ tag: "text", text: `E-mail: ${fb.email ?? "(nie podano)"}` }],
     ];
     if (fb.note) paragraphs.push([{ tag: "text", text: fb.note }]);
     if (shot.imageKey) paragraphs.push([{ tag: "img", image_key: shot.imageKey }]);
     else if (shot.note) paragraphs.push([{ tag: "text", text: shot.note }]);
-    await sendToChat(chat, "post", { zh_cn: { title: `反馈 #${fb.id}`, content: paragraphs } });
+    await sendToChat(chat, "post", { zh_cn: { title: `Opinia #${fb.id}`, content: paragraphs } });
     await sql`UPDATE feedback SET forwarded_at = now(), forward_error = NULL WHERE id = ${id}`;
     return "sent";
   } catch (error) {

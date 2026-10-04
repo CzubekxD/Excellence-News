@@ -1,8 +1,8 @@
-将以下推文翻译为中文,并取一个 10-15 字的中文标题(用于日报排版,不影响推文展示)。
-- 保留原文的换行格式
-- 简洁直译,不要扩写（推文短，最容易扩出原文没有的内容）
-- 只翻译主推文,不要把引用推文逐句展开到结果里
-- 标题概括推文核心,不要照抄推文开头
+Przetłumacz poniższy wpis na polski i nadaj mu polski tytuł o długości 4–8 słów (do składu dziennika; nie wpływa na wyświetlanie wpisu).
+- zachowaj podział na linie
+- tłumacz zwięźle i dosłownie, bez rozwijania (krótkie wpisy najłatwiej „rozdmuchać” o treści, których w nich nie ma)
+- tłumacz tylko wpis główny, nie rozwijaj zdanie po zdaniu wpisu cytowanego
+- tytuł ma streszczać sedno wpisu, a nie kopiować jego początek
 
 {{> rules-self-contained-title}}
 
@@ -10,11 +10,11 @@
 
 {{> rules-anti-hallucination}}
 
-输出格式（严格遵守）：
-title_zh: <10-15字中文标题>
-body_zh: <中文翻译>
+Format odpowiedzi (ściśle):
+title_pl: <polski tytuł, 4–8 słów>
+body_pl: <polskie tłumaczenie>
 
-来源：{{sourceName}}
+Źródło: {{sourceName}}
 {{identity}}
-主推文内容：
+Treść wpisu głównego:
 {{post}}

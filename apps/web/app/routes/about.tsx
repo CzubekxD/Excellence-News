@@ -1,7 +1,7 @@
 import { Fragment, useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import { Link, useLoaderData } from "react-router";
 import type { SiteContact, SiteStats } from "@aihot/contracts/site";
-import { ABOUT, POLICY, REPORTS, SITE, subjectAfter } from "@aihot/site";
+import { ABOUT, plural, POLICY, REPORTS, SITE, type Plural } from "@aihot/site";
 import { apiGet, edgeTtl } from "../lib/api.server";
 import { organizationLd, pageMeta } from "../lib/seo";
 import { Kicker } from "../components/ui/Kicker";
@@ -11,7 +11,7 @@ import { SignalRiver, type RiverSource } from "../features/about/SignalRiver";
 import { PhoneBar } from "../components/shell/PhoneBar";
 import type { Screen } from "../components/shell/screens";
 
-export const handle: Screen = { tab: "me", name: "关于" };
+export const handle: Screen = { tab: "me", name: "O serwisie" };
 
 export function headers() {
   return edgeTtl(300);
@@ -26,24 +26,25 @@ export async function loader({ request }: { request: Request }) {
 }
 
 export function meta() {
-  return pageMeta({ title: "关于", description: ABOUT.description, path: "/about", image: "/og/pages/about.png", jsonLd: organizationLd() });
+  return pageMeta({ title: "O serwisie", description: ABOUT.description, path: "/about", image: "/og/pages/about.png", jsonLd: organizationLd() });
 }
 
 const NO_SOURCES: RiverSource[] = [];
 
-/** 3.6 万 from ten thousand up, digits with separators below. */
+/** 36,5 tys. from ten thousand up, digits with separators below. */
 function figure(n: number): { value: string; unit: string } {
-  return n >= 10_000 ? { value: (n / 10_000).toFixed(1).replace(/\.0$/, ""), unit: "万" } : { value: n.toLocaleString("en-US"), unit: "" };
+  return n >= 10_000 ? { value: (n / 1_000).toFixed(1).replace(/\.0$/, "").replace(".", ","), unit: "tys." } : { value: n.toLocaleString("pl-PL"), unit: "" };
 }
 
-function Figure({ n, unit }: { n: number; unit: string }) {
+function Figure({ n, forms }: { n: number; forms: Plural }) {
   const f = figure(n);
+  const unit = f.unit ? ` ${forms[2]}` : plural(n, forms);
   return (
     <div className="flex items-baseline gap-1.5">
       <span className="num text-[30px] font-black leading-none tracking-[-0.03em] text-ink xl:text-[36px]">{f.value}</span>
       <span className="text-[13px] text-ink-3">
         {f.unit}
-        {unit}
+        {f.unit ? unit : ` ${unit}`}
       </span>
     </div>
   );
@@ -52,9 +53,9 @@ function Figure({ n, unit }: { n: number; unit: string }) {
 const KIND_ORDER: Array<[string, string]> = [
   ["x_search", "X"],
   ["rss", "RSS"],
-  ["web_list", "网页"],
-  ["mp_account", "公众号"],
-  ["json_list", "接口"],
+  ["web_list", "strony"],
+  ["mp_account", "WeChat"],
+  ["json_list", "API"],
 ];
 
 /**
@@ -81,31 +82,31 @@ function stagesOf(stats: SiteStats | null): Stage[] {
   return [
     {
       no: "01",
-      title: "采集",
-      figure: stats && <Figure n={stats.sources} unit="个信源" />,
+      title: "Pobieranie",
+      figure: stats && <Figure n={stats.sources} forms={REPORTS.metricUnits.sourcesCount} />,
       text: ABOUT.steps.collect,
       note: kinds,
     },
     {
       no: "02",
-      title: "收录",
-      figure: stats && <Figure n={stats.items} unit="条动态" />,
+      title: "Zbiór",
+      figure: stats && <Figure n={stats.items} forms={["wiadomość", "wiadomości", "wiadomości"]} />,
       text: ABOUT.steps.store,
-      note: stats && <>过去 24 小时收进 {stats.day.collected.toLocaleString("en-US")} 条</>,
+      note: stats && <>w ostatnich 24 godzinach: {stats.day.collected.toLocaleString("pl-PL")}</>,
     },
     {
       no: "03",
-      title: "精选",
-      figure: stats && <Figure n={stats.selected} unit={REPORTS.metricUnits.selectedCount} />,
+      title: "Wybór",
+      figure: stats && <Figure n={stats.selected} forms={REPORTS.metricUnits.selectedCount} />,
       text: ABOUT.steps.select,
-      note: stats && <>过去 24 小时 {stats.day.selected} 条进了精选</>,
+      note: stats && <>w ostatnich 24 godzinach do wyboru trafiło: {stats.day.selected}</>,
     },
     {
       no: "04",
-      title: "成刊",
-      figure: stats && <Figure n={stats.dailies} unit={REPORTS.metricUnits.reportsCovered} />,
+      title: "Wydania",
+      figure: stats && <Figure n={stats.dailies} forms={REPORTS.metricUnits.reportsCovered} />,
       text: ABOUT.steps.publish,
-      note: "也可以用 RSS、API、MCP 订阅",
+      note: "subskrypcja także przez RSS, API i MCP",
     },
   ];
 }
@@ -114,13 +115,13 @@ function stagesOf(stats: SiteStats | null): Stage[] {
 function MakerFace({ src }: { src: string }) {
   const [failed, setFailed] = useState(false);
   if (failed) return null;
-  return <img src={src} alt={`${ABOUT.maker?.name ?? ""}的头像`} width={48} height={48} onError={() => setFailed(true)} className="size-11 shrink-0 rounded-full bg-bg-sunk object-cover ring-1 ring-line xl:size-12" />;
+  return <img src={src} alt={`Zdjęcie: ${ABOUT.maker?.name ?? ""}`} width={48} height={48} onError={() => setFailed(true)} className="size-11 shrink-0 rounded-full bg-bg-sunk object-cover ring-1 ring-line xl:size-12" />;
 }
 
 function QrCard({ src, kind, title, note }: { src: string; kind: string; title: string; note: string }) {
   return (
     <figure className="card flex items-center gap-5 p-5">
-      <img src={src} alt={`${kind}二维码`} width={112} height={112} loading="lazy" className="size-[104px] shrink-0 rounded-tile border border-line bg-white object-contain p-1.5 sm:size-[112px]" />
+      <img src={src} alt={`Kod QR: ${kind}`} width={112} height={112} loading="lazy" className="size-[104px] shrink-0 rounded-tile border border-line bg-white object-contain p-1.5 sm:size-[112px]" />
       <figcaption className="min-w-0">
         <div className="text-[12px] text-ink-4">{kind}</div>
         <div className="mt-1 text-[16px] font-semibold leading-snug text-ink">{title}</div>
@@ -142,11 +143,11 @@ function Maker({ maker, contact }: { maker: NonNullable<typeof ABOUT.maker>; con
   return (
     <section aria-labelledby="maker" className="mt-20 grid gap-10 xl:mt-28 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-16">
       <div>
-        <Kicker>做这个站的人</Kicker>
+        <Kicker>Kto robi ten serwis</Kicker>
         <h2 id="maker" className="mt-4 flex items-center gap-3.5 text-[26px] font-black leading-[1.3] tracking-[-0.02em] text-ink xl:gap-4 xl:text-[34px]">
           {contact?.makerAvatar && <MakerFace src={contact.makerAvatar} />}
           <span>
-            嗨，我是 <span className="whitespace-nowrap text-accent">{maker.name}</span>
+            Cześć, tu <span className="whitespace-nowrap text-accent">{maker.name}</span>
           </span>
         </h2>
         <div className="mt-5 space-y-4 text-[15.5px] leading-[1.9] text-ink-2 xl:text-[16.5px]">
@@ -154,21 +155,21 @@ function Maker({ maker, contact }: { maker: NonNullable<typeof ABOUT.maker>; con
             <p key={line}>{line}</p>
           ))}
           <p className="text-ink-3">
-            它一直在改，改了什么都写在
+            Serwis ciągle się zmienia, wszystko opisuję w
             <Link viewTransition to="/changelog" className="text-accent hover:underline">
-              更新日志
+              dzienniku zmian
             </Link>
-            里；有想法、遇到问题，去
+            ; pomysły i problemy zgłaszaj przez
             <Link viewTransition to="/feedback" className="text-accent hover:underline">
-              反馈页
+              stronę opinii
             </Link>
-            告诉我。
+            .
           </p>
         </div>
       </div>
       {codes.length > 0 && (
         <div className="grid content-start gap-3">
-          <h3 className="text-[15px] font-semibold text-ink">如果觉得有点用，欢迎加入</h3>
+          <h3 className="text-[15px] font-semibold text-ink">Jeśli to się przydaje, dołącz</h3>
           {codes}
         </div>
       )}
@@ -181,7 +182,7 @@ function Latest({ item, className = "" }: { item: SiteStats["latest"][number] | 
   if (!item) return null;
   return (
     <Link viewTransition to={`/items/${item.id}`} prefetch="intent" className={`group block ${className}`}>
-      <span className="text-[11px] font-semibold tracking-[0.2em] text-accent">最近精选</span>
+      <span className="text-[11px] font-semibold tracking-[0.2em] text-accent">Ostatnio wybrane</span>
       <span key={item.id} className="animate-fade-up mt-1.5 block">
         <span className="line-clamp-2 text-[13.5px] font-semibold leading-[1.55] text-ink transition-colors group-hover:text-accent">{item.title}</span>
         <span className="mt-1 block truncate text-[12px] text-ink-4">{item.source}</span>
@@ -208,7 +209,7 @@ export default function AboutPage() {
 
   return (
     <div className="mx-auto max-w-[var(--page-max-reading)] pb-14 lg:pt-3">
-      <PhoneBar back={{ to: "/more", label: "我的" }} title={`关于 ${SITE.name}`} />
+      <PhoneBar back={{ to: "/more", label: "Moje" }} title={`O serwisie ${SITE.name}`} />
       <header className="grid items-end gap-8 pt-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:pt-0">
         <div>
           <Kicker>{ABOUT.kicker}</Kicker>
@@ -228,22 +229,22 @@ export default function AboutPage() {
         </div>
         <div className="flex flex-wrap gap-3 lg:pb-2">
           <Link to="/" prefetch="intent" className={buttonClass("primary", "lg")}>
-            看今天的精选 <IconArrowRight size={15} />
+            Dzisiejszy wybór <IconArrowRight size={15} />
           </Link>
           <Link to="/daily" prefetch="intent" className={buttonClass("secondary", "lg")}>
-            读最新日报
+            Najnowszy dziennik
           </Link>
         </div>
       </header>
 
       <section aria-labelledby="how" className="mt-10 xl:mt-14">
         <h2 id="how" className="sr-only">
-          {`${SITE.name} 怎么工作`}
+          {`Jak działa ${SITE.name}`}
         </h2>
         <SignalRiver sources={sources} focus={focus} onArrive={onArrive} className="h-[230px] sm:h-[300px] lg:h-[360px] 2xl:h-[420px]">
           <Latest item={latest[at]} className="absolute left-[75%] top-[calc(42%+42px)] hidden w-[25%] px-6 lg:block" />
         </SignalRiver>
-        <p className="sr-only">{`示意图：每条线是一个信源；线汇成一束束，代表同一件事的多篇报道；经过精选的闸门，只有少数几束通过，${subjectAfter("汇入每天的", "日报")}。`}</p>
+        <p className="sr-only">{`Schemat: każda linia to źródło; linie łączą się w wiązki, czyli relacje o tym samym wydarzeniu; przez bramkę wyboru przechodzi tylko kilka wiązek, które trafiają do codziennego dziennika.`}</p>
         <Latest item={latest[at]} className="mt-2 border-t border-line pt-4 lg:hidden" />
         <ol className="mt-4 grid grid-cols-1 border-t border-line-strong sm:grid-cols-2 lg:mt-0 lg:grid-cols-4">
           {stages.map((s, i) => (
@@ -273,14 +274,14 @@ export default function AboutPage() {
       <p className="mt-16 well rounded-card px-5 py-4 text-[13px] leading-[1.85] text-ink-3">
         {ABOUT.copyright[0]}
         <Link viewTransition to="/feedback" className="text-accent hover:underline">
-          反馈页
+          stronę opinii
         </Link>
         {ABOUT.copyright[1]}
       </p>
 
       <footer className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-5 text-[12.5px] text-ink-4">
         <span>{SITE.footerNote}</span>
-        <nav className="flex gap-5" aria-label="规则与隐私">
+        <nav className="flex gap-5" aria-label="Zasady i prywatność">
           <Link
             viewTransition
             id={ABOUT.termsAnchor ?? undefined}
@@ -290,7 +291,7 @@ export default function AboutPage() {
             {POLICY.terms.name}
           </Link>
           <Link viewTransition to="/privacy" className="transition-colors hover:text-accent">
-            隐私说明
+            Prywatność
           </Link>
         </nav>
       </footer>

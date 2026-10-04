@@ -5,7 +5,7 @@
 //     node --env-file=.env scripts/eval-story-digests.ts --stories <publicId,...> --out <file.jsonl>
 //   Run the cases:
 //     node --env-file=.env scripts/eval-story-digests.ts [--cases .data/story-digest-cases.jsonl] [--system <candidate.md>]
-//       [--models default,deepseek-flash] [--max-calls 18] [--concurrency 4] [--out-dir .data/eval]
+//       [--models default,groq] [--max-calls 18] [--concurrency 4] [--out-dir .data/eval]
 // The number of calls (cases × models × prompts) is printed first; above --max-calls nothing is sent.
 // Receipts make an identical re-run free. The comparison is written to --out-dir as JSON and Markdown.
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";

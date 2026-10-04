@@ -1,109 +1,83 @@
 // Generates the report nameplates (site/brand/nameplates/*.svg and index.json): the subject word
-// from site/site.ts (in the accent) and the Chinese title, set solid in Noto Sans SC Black
-// (SIL OFL 1.1) as SVG paths, so the nameplate is one static logotype on every system. The Latin
-// capitals are scaled to stand as tall as the Chinese glyphs, both centred on one line, and the spacing
-// is set by ink, pair by pair.
+// from site/site.ts (in the accent) and the Polish title, set solid in Noto Sans Black (SIL OFL 1.1)
+// as SVG paths, so the nameplate is one static logotype on every system. All capitals share one scale,
+// centred on one line (diacritics such as Ę and Ń included), and the spacing is set by ink, pair by pair.
 //
-// Usage: node scripts/nameplates.ts <@fontsource/noto-sans-sc package directory>
-//   (fetch it with `npm pack @fontsource/noto-sans-sc@5.3.0` and untar; it is not a dependency)
+// Usage: node scripts/nameplates.ts <NotoSans_900Black.ttf>
+//   (fetch it with `npm pack @expo-google-fonts/noto-sans@0.4.2` and untar; it is not a dependency)
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import path from "node:path";
 import opentype from "opentype.js";
 import { SITE } from "@aihot/site";
 
-const pkg = process.argv[2];
-if (!pkg) throw new Error("usage: node scripts/nameplates.ts <noto-sans-sc package dir>");
+const file = process.argv[2];
+if (!file) throw new Error("usage: node scripts/nameplates.ts <NotoSans_900Black.ttf>");
 
-/** Ink height of the Chinese glyphs, in the nameplate's units. */
+/** Ink height of the tallest capital (with its diacritic), in the nameplate's units. */
 const H = 220;
-/** Latin capitals a touch shorter than the ideographs, which read larger. */
-const CAPS = H * 0.94;
 const MARGIN = 12;
-const isLatin = (ch: string) => /[A-Za-z]/.test(ch);
-/** Space between the inks of two neighbours. */
-function gap(a: string, b: string): number {
-  if (isLatin(a) && isLatin(b)) return H * 0.07;
-  if (isLatin(a) !== isLatin(b)) return H * 0.17;
-  return H * 0.085;
-}
+/** Space between the inks of two letters of one word, and between two words. */
+const LETTER_GAP = H * 0.06;
+const WORD_GAP = H * 0.3;
 
-const S = SITE.subject;
+const S = SITE.subject.toUpperCase();
 const NAMEPLATES: Record<string, Array<{ text: string; accent: boolean }>> = {
   daily: [
     { text: S, accent: true },
-    { text: "日报", accent: false },
+    { text: "DZIENNIK", accent: false },
   ],
   weekly: [
     { text: S, accent: true },
-    { text: "周报", accent: false },
+    { text: "TYGODNIK", accent: false },
   ],
   monthly: [
     { text: S, accent: true },
-    { text: "月报", accent: false },
+    { text: "MIESIĘCZNIK", accent: false },
   ],
   archive: [
-    { text: "日报", accent: false },
-    { text: "合订本", accent: true },
+    { text: "ARCHIWUM", accent: true },
+    { text: "WYDAŃ", accent: false },
   ],
 };
 
-// Which woff slice of the 900 weight holds each character.
-const css = readFileSync(path.join(pkg, "900.css"), "utf8");
-const faces = [...css.matchAll(/url\(\.\/files\/([\w-]+)\.woff2\)[^;]*;\s*unicode-range: ([^;]+);/g)].map((m) => ({
-  file: `${m[1]}.woff`,
-  ranges: m[2]!.split(",").map((r) => r.trim().replace("U+", "").split("-").map((h) => parseInt(h, 16))),
-}));
-const fonts = new Map<string, opentype.Font>();
-function fontFor(ch: string): opentype.Font {
-  const cp = ch.codePointAt(0)!;
-  const face = faces.find((f) => f.ranges.some(([a, b]) => cp >= a! && cp <= (b ?? a!)));
-  if (!face) throw new Error(`no slice holds ${ch}`);
-  if (!fonts.has(face.file)) {
-    const buf = readFileSync(path.join(pkg, "files", face.file));
-    fonts.set(face.file, opentype.parse(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength)));
-  }
-  return fonts.get(face.file)!;
-}
+const buf = readFileSync(file);
+const font = opentype.parse(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength));
 
-// One scale for all the Chinese glyphs and one for the capitals, from their union ink at 1000 units;
-// both are centred on the same line.
-const chars = [...new Set(Object.values(NAMEPLATES).flatMap((parts) => parts.flatMap((p) => [...p.text])))];
-const boxes = new Map(chars.map((ch) => [ch, fontFor(ch).getPath(ch, 0, 0, 1000).getBoundingBox()]));
-function fit(group: string[], height: number) {
-  const top = Math.min(...group.map((ch) => boxes.get(ch)!.y1));
-  const bottom = Math.max(...group.map((ch) => boxes.get(ch)!.y2));
-  const size = (1000 * height) / (bottom - top);
-  return { size, baseline: -((top + bottom) / 2) * (size / 1000) };
-}
-const cjk = fit(chars.filter((ch) => !isLatin(ch)), H);
-const latin = chars.some(isLatin) ? fit(chars.filter(isLatin), CAPS) : cjk;
+// One scale for every letter, from their union ink at 1000 units, centred on the line.
+const chars = [...new Set(Object.values(NAMEPLATES).flatMap((parts) => parts.flatMap((p) => [...p.text.replace(/\s/g, "")])))];
+const boxes = new Map(chars.map((ch) => [ch, font.getPath(ch, 0, 0, 1000).getBoundingBox()]));
+const top = Math.min(...chars.map((ch) => boxes.get(ch)!.y1));
+const bottom = Math.max(...chars.map((ch) => boxes.get(ch)!.y2));
+const size = (1000 * H) / (bottom - top);
+const baseline = -((top + bottom) / 2) * (size / 1000);
+const scale = size / 1000;
 
 const out: Record<string, { viewBox: string; accent: string; ink: string }> = {};
 for (const [name, parts] of Object.entries(NAMEPLATES)) {
   const accent: string[] = [];
   const ink: string[] = [];
   let x = MARGIN;
-  let prev: string | null = null;
+  let first = true;
   for (const part of parts) {
-    for (const ch of part.text) {
-      const { size, baseline } = isLatin(ch) ? latin : cjk;
-      const box = boxes.get(ch)!;
-      const scale = size / 1000;
-      if (prev) x += gap(prev, ch);
-      const origin = x - box.x1 * scale;
-      (part.accent ? accent : ink).push(fontFor(ch).getPath(ch, origin, baseline, size).toPathData(1));
-      x = origin + box.x2 * scale;
-      prev = ch;
+    for (const word of part.text.split(/\s+/).filter(Boolean)) {
+      if (!first) x += WORD_GAP;
+      for (const [i, ch] of [...word].entries()) {
+        const box = boxes.get(ch)!;
+        if (i > 0) x += LETTER_GAP;
+        const origin = x - box.x1 * scale;
+        (part.accent ? accent : ink).push(font.getPath(ch, origin, baseline, size).toPathData(1));
+        x = origin + box.x2 * scale;
+      }
+      first = false;
     }
   }
-  const half = Math.max(H, CAPS) / 2 + MARGIN;
+  const half = H / 2 + MARGIN;
   out[name] = { viewBox: `0 ${(-half).toFixed(1)} ${(x + MARGIN).toFixed(1)} ${(2 * half).toFixed(1)}`, accent: accent.join(" "), ink: ink.join(" ") };
 }
 
 const target = "site/brand/nameplates";
 mkdirSync(target, { recursive: true });
 for (const [name, n] of Object.entries(out)) {
-  writeFileSync(`${target}/${name}.svg`, `<!-- Generated by scripts/nameplates.ts. Noto Sans SC Black (SIL OFL 1.1). -->\n<svg xmlns="http://www.w3.org/2000/svg" viewBox="${n.viewBox}"><path id="accent" d="${n.accent}"/><path id="ink" d="${n.ink}"/></svg>\n`);
+  writeFileSync(`${target}/${name}.svg`, `<!-- Generated by scripts/nameplates.ts. Noto Sans Black (SIL OFL 1.1). -->\n<svg xmlns="http://www.w3.org/2000/svg" viewBox="${n.viewBox}"><path id="accent" d="${n.accent}"/><path id="ink" d="${n.ink}"/></svg>\n`);
 }
 writeFileSync(`${target}/index.json`, `${JSON.stringify(Object.fromEntries(Object.entries(out).map(([k, v]) => [k, v.viewBox])), null, 2)}\n`);
 console.log(target, Object.fromEntries(Object.entries(out).map(([k, v]) => [k, `${v.viewBox} · ${((v.accent.length + v.ink.length) / 1000).toFixed(1)} kB`])));

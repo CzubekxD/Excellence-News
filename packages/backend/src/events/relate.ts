@@ -9,7 +9,7 @@
 // with both reports fully described is what makes the judge usable: a yes/no question with
 // "prefer no" refused half of the true merges (measured on labelled pairs).
 import { z } from "zod";
-import { beijingDate, beijingTime } from "@aihot/contracts/time";
+import { siteDate, siteTime } from "@aihot/contracts/time";
 import { promptText, promptVersion } from "../editorial/prompts.ts";
 
 export const RELATE_PROMPT_VERSION = promptVersion("group-pair", "group-signal");
@@ -44,7 +44,7 @@ export interface CandidateView {
   /** Recall similarity with the query (cosine of the two embeddings, or the lexical fallback's overlap). */
   score: number;
   report: ReportView;
-  /** Only a report already visible in 精选 counts as coverage the reader has seen. */
+  /** Only a report already visible in the selection counts as coverage the reader has seen. */
   selected?: boolean;
   selectedReport?: ReportView | null;
 }
@@ -87,21 +87,21 @@ export const SignalSchema = z.object({
 });
 
 function when(at: Date | null): string {
-  return at ? `${beijingDate(at)} ${beijingTime(at)}` : "未知";
+  return at ? `${siteDate(at)} ${siteTime(at)}` : "nieznana";
 }
 
 export function describeReport(r: ReportView, label: string, extra = "", summaryLimit = 360): string {
   const f = r.frame;
   return [
     `【${label}】${extra}`,
-    `标题：${r.title}`,
-    `来源：${r.source}${r.firstParty ? "（当事方/官方）" : ""}｜发布时间：${when(r.at)}`,
-    `摘要：${(r.summary ?? "").slice(0, summaryLimit) || "（无）"}`,
-    r.scope && r.scope !== "unknown" ? `资料范围：${r.scope === "composite" ? "多个独立发生的综合稿" : "单一具体发生或议题"}` : null,
+    `Tytuł: ${r.title}`,
+    `Źródło: ${r.source}${r.firstParty ? " (strona wydarzenia / oficjalne)" : ""} | data publikacji: ${when(r.at)}`,
+    `Streszczenie: ${(r.summary ?? "").slice(0, summaryLimit) || "(brak)"}`,
+    r.scope && r.scope !== "unknown" ? `Zakres materiału: ${r.scope === "composite" ? "tekst zbiorczy o wielu niezależnych zdarzeniach" : "jedno konkretne zdarzenie lub temat"}` : null,
     f && (f.subject || f.action || f.object)
-      ? `事实要素：主体=${f.subject || "?"}；动作=${f.action || "?"}；对象=${f.object || "?"}；日期=${f.occurredAt || "未知"}`
+      ? `Elementy faktu: podmiot=${f.subject || "?"}; działanie=${f.action || "?"}; obiekt=${f.object || "?"}; data=${f.occurredAt || "nieznana"}`
       : null,
-    r.sourceText ? `【原文证据】\n${r.sourceText.slice(0, 6000)}\n【原文证据结束】` : null,
+    r.sourceText ? `【Dowód z oryginału】\n${r.sourceText.slice(0, 6000)}\n【Koniec dowodu z oryginału】` : null,
   ]
     .filter(Boolean)
     .join("\n");
@@ -109,24 +109,24 @@ export function describeReport(r: ReportView, label: string, extra = "", summary
 
 export const candidateKey = (index: number) => `C${index + 1}`;
 
-export function batchUser(query: ReportView, cands: CandidateView[], queryLabel = "新报道", reading: ReadingContext[] = []): string {
+export function batchUser(query: ReportView, cands: CandidateView[], queryLabel = "Nowy tekst", reading: ReadingContext[] = []): string {
   const list = cands
     .map((c, i) => [
-      describeReport(c.report, `候选 ${candidateKey(i)}`, `（该事实已有 ${c.members} 篇报道；事实标题：${c.factTitle}）`),
-      queryLabel === "新报道" ? c.selected && c.selectedReport
-        ? describeReport(c.selectedReport, "已公开精选", "（增量只与这篇已展示的内容比较）")
-        : "【尚无公开精选】该候选只用于身份判断。" : null,
+      describeReport(c.report, `Kandydat ${candidateKey(i)}`, ` (ten fakt ma już relacji: ${c.members}; tytuł faktu: ${c.factTitle})`),
+      queryLabel === "Nowy tekst" ? c.selected && c.selectedReport
+        ? describeReport(c.selectedReport, "Opublikowane w wyborze", " (przyrost porównuj tylko z tą już pokazaną treścią)")
+        : "【Jeszcze bez publikacji w wyborze】Ten kandydat służy tylko do ustalenia tożsamości." : null,
     ].filter(Boolean).join("\n"))
     .join("\n\n");
   const background = reading.map(({ report, sourceText }, i) => [
-    describeReport(report, `已公开精选阅读背景 R${i + 1}`, "（只比较信息覆盖，不是事实候选）", 2000),
-    sourceText ? `【该已选报道的原文证据】\n${sourceText.slice(0, 6000)}\n【原文证据结束】` : null,
+    describeReport(report, `Tło lektury opublikowanego wyboru R${i + 1}`, " (porównuj tylko pokrycie informacji; to nie jest kandydat na fakt)", 2000),
+    sourceText ? `【Dowód z oryginału tego wybranego tekstu】\n${sourceText.slice(0, 6000)}\n【Koniec dowodu z oryginału】` : null,
   ].filter(Boolean).join("\n")).join("\n\n");
-  return `${describeReport(query, queryLabel)}\n\n${list}${background ? `\n\n${background}` : ""}\n\n${queryLabel}与每个候选的关系是什么？${background ? "同时比较所有已公开精选内容，判断新增价值；无事实候选时 decisions=[]。" : ""}`;
+  return `${describeReport(query, queryLabel)}\n\n${list}${background ? `\n\n${background}` : ""}\n\nJaka jest relacja: ${queryLabel} a każdy kandydat?${background ? " Porównaj też z całą opublikowaną treścią wyboru i oceń przyrost wartości; bez kandydatów na fakt decisions=[]." : ""}`;
 }
 
 export function pairUser(a: ReportView, b: ReportView): string {
-  return `${describeReport(a, "报道 A")}\n\n${describeReport(b, "报道 B")}\n\n这两篇报道是什么关系？`;
+  return `${describeReport(a, "Tekst A")}\n\n${describeReport(b, "Tekst B")}\n\nJaka jest relacja między tymi dwoma tekstami?`;
 }
 
 /** An identity answer must address every supplied candidate exactly once. */
@@ -187,7 +187,7 @@ export const STORY_REVIEW_MIN_CONFIDENCE = 0.75;
 
 /** The text a report is embedded with: title and the start of the summary, the same on both sides of a comparison. */
 export function reportText(title: string, summary: string | null | undefined): string {
-  return `${title}。${(summary ?? "").slice(0, 300)}`;
+  return `${title}. ${(summary ?? "").slice(0, 300)}`;
 }
 
 /** Lexical stand-in for cosine when embeddings are off (no embedding key): shared character bigrams. */

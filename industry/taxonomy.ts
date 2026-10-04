@@ -1,153 +1,152 @@
-// 这个行业的分类体系：类别、标签词表、公司（主体）名录，以及防止张冠李戴的身份词典。
-// 模型按这里的词表打标签，主题页（topics.json）按标签归类，筛选栏按类别分组。
-// 换行业时：类别的 key 会出现在网址里（/all?category=…），上线后就不要再改；标签和名录可以随时增减。
+// System klasyfikacji tej branży: kategorie, słownik tagów, katalog firm i instytucji oraz słownik
+// tożsamości, który pilnuje, żeby model nie przypisał wiadomości złej firmie.
+// Model taguje według tych słowników, strony tematów (topics.json) grupują po tagach, filtry po kategoriach.
+// Klucze kategorii trafiają do adresów (/all?category=…), więc po starcie serwisu ich nie zmieniaj;
+// tagi i katalog firm można zmieniać w każdej chwili.
 
 /**
- * 网页上的类别（筛选栏、卡片角标、RSS 分类订阅）。key 是网址和接口里的身份，上线后不要改。
- * section 是日报里的分节标题（几个类别可以共用一节，按这里的顺序排）；guide 告诉结构抽取模型这一类收什么、
- * 和相邻类别的边界在哪（总的归类原则写在 prompts/structure.md 里）。
- * commentary 标出评论类（教程、观点）：日报写过的事又有评论类的后续报道，只占一行快讯（报道它的信源够多时除外）。
- * 没归上类的资料在日报里放进第一个 key 为 industry 的类别所在的节（没有就放最后一节）。
- * feedLabel 是分类 RSS 标题里的名字（不写就用 label）。公开接口、RSS 和 MCP 里要把一类并进另一类发布，写在站点设置里（site/site.ts 的 PUBLIC_CATEGORIES）。
+ * Kategorie na stronie (filtry, plakietki na kartach, kanały RSS kategorii). key to tożsamość w adresach
+ * i API, po starcie nie zmieniaj. section to dział w dzienniku (kilka kategorii może dzielić dział, kolejność
+ * jak tutaj); guide mówi modelowi strukturyzującemu, co należy do kategorii i gdzie są granice z sąsiednimi
+ * (ogólne zasady klasyfikacji są w prompts/structure.md).
+ * commentary oznacza kategorię komentarzową: gdy dziennik opisał już wydarzenie, dalsze komentarze z tej
+ * kategorii dostają tylko jedną linijkę (chyba że pisze o nich wiele źródeł).
+ * Niesklasyfikowane wiadomości trafiają do działu kategorii o kluczu industry.
+ * feedLabel to nazwa w tytule kanału RSS kategorii (domyślnie label).
  */
 export const CATEGORIES = [
-  { key: "ai-models", label: "模型", feedLabel: "AI 模型", section: "模型发布/更新", guide: "模型本身的发布、版本、权重开放、能力或价格变化，以及既有榜单上的模型成绩。公布一次跑分不是发布新基准，也不是教程。" },
-  { key: "ai-products", label: "产品", feedLabel: "AI 产品", section: "产品发布/更新", guide: "可使用的 AI 产品、功能、应用、工具、API、平台和工程组件的发布更新。模型厂商发布的推理框架、算子库、硬件适配组件仍是产品，不能因为厂商名归成模型。" },
-  { key: "industry", label: "行业", feedLabel: "行业动态", section: "行业动态", guide: "已发生的公司经营、融资并购、人事、合作、诉讼、政策、真实安全事故及调查进展。新闻由当事人发帖、带有态度，也不因此变成观点。" },
-  { key: "paper", label: "论文", feedLabel: "论文", section: "论文研究", guide: "以新研究方法、实验设计与发现为核心的论文、技术报告、新基准或研究数据集。系统性红队实验属于研究；既有榜单成绩归模型，真实事故的新闻调查归行业。" },
-  { key: "tip", label: "教程", section: "技巧与观点", guide: "读者可以照着使用的方法、提示词、工具用法、工程实践复盘与技术讲解。重点是可复用的做法；单纯发布工具归产品，只有态度和预测而无做法归观点。", commentary: true },
-  { key: "opinion", label: "观点", section: "技巧与观点", guide: "重点是作者的解释、判断、主张、预测、评论或访谈观点。讨论市场不自动归行业，作者是名人不自动归观点。", commentary: true },
+  { key: "lean", label: "Lean i TPS", feedLabel: "Lean i Toyota Production System", section: "Lean i ciągłe doskonalenie", guide: "Lean, Toyota Production System, kaizen, gemba, standaryzacja pracy, Toyota Kata, A3, Hoshin Kanri, systemy zarządzania Lean i przepływ w produkcji. Liczy się metoda albo jej wdrożenie; sam fakt, że firma jest Toyotą, nie wystarcza (biznes Toyoty to Przemysł)." },
+  { key: "opex", label: "OPEX i jakość", feedLabel: "Operational Excellence i jakość", section: "Operational Excellence i jakość", guide: "Programy Operational Excellence, Six Sigma, zarządzanie jakością, TPM i utrzymanie ruchu, doskonalenie procesów biznesowych (BPM), benchmarking procesów, automatyzacja i AI użyte do poprawy operacji. Lean jako metoda idzie do Lean i TPS; same cięcia budżetów do Kosztów." },
+  { key: "agile", label: "Agile i flow", feedLabel: "Agile, Kanban i flow", section: "Agile, Kanban i flow", guide: "Agile, Scrum, Kanban (metoda Kanban w pracy z wiedzą), metryki przepływu, OKR, Agile na dużą skalę (SAFe, Flight Levels), zarządzanie produktem i portfelem. Kanban jako system ssący w fabryce należy do Lean i TPS." },
+  { key: "costs", label: "Koszty", feedLabel: "Koszty i efektywność", section: "Koszty i efektywność", guide: "Optymalizacja kosztów: koszty pośrednie, SG&A, koszty pracy bezpośredniej i pośredniej, zakupy i oszczędności zakupowe, energia jako koszt, benchmarki kosztów funkcji wsparcia, programy transformacji kosztowej. Koszty transportu i frachtu idą do Łańcucha dostaw." },
+  { key: "supply-chain", label: "Łańcuch dostaw", feedLabel: "Logistyka i łańcuch dostaw", section: "Logistyka i łańcuch dostaw", guide: "Transport i fracht (stawki, paliwo, przewoźnicy), logistyka wewnętrzna i magazyny, planowanie, zapasy, odporność łańcucha dostaw, cła wpływające na dostawy. Inwestycje w nowe fabryki to Przemysł." },
+  { key: "industry", label: "Przemysł", feedLabel: "Przemysł i motoryzacja", section: "Przemysł i motoryzacja", guide: "Wydarzenia biznesowe w przemyśle i motoryzacji: inwestycje, otwarcia i zamknięcia zakładów, przejęcia, wyniki, zwolnienia, nominacje, regulacje i polityka przemysłowa, dane makro dla produkcji (PMI). Gdy tekst opisuje metodę doskonalenia, wybierz kategorię metody." },
+  { key: "leadership", label: "Ludzie i kultura", feedLabel: "Przywództwo, ludzie i kultura", section: "Ludzie, przywództwo i kultura", guide: "Przywództwo, rola managera, zaangażowanie, kultura organizacyjna, zarządzanie zmianą, rozwój kompetencji, psychologia zespołu. Liczy się teza autora albo wnioski z doświadczenia; konkretne narzędzie Lean lub Agile idzie do swojej kategorii.", commentary: true },
 ] as const satisfies ReadonlyArray<{ key: string; label: string; feedLabel?: string; section: string; guide: string; commentary?: true }>;
 
 /**
- * 这个行业最受关注的一类发布（AI 行业是新模型）：日报报头的“N 个新模型”、改分类后修订已出的报告都按它数。
- * category 是类别，tag 是标签，两者都对上才算；unit 接在数字后面。
- * 没有这样一类的行业设成 null，报头就不显示这个数。
+ * Najważniejszy typ publikacji w branży (w AI: nowy model), liczony w winiecie dziennika.
+ * Branża OPEX nie ma takiego jednego typu, więc null: winieta tej liczby nie pokazuje.
  */
-export const RELEASE: { category: string; tag: string; unit: string } | null = { category: "ai-models", tag: "模型发布", unit: "个新模型" };
+export const RELEASE: { category: string; tag: string; unit: string } | null = null;
 
-/** 周报月报的总述可以直接写、不必在报道里找到出处的行业通用词（小写）。站名会自动算进去。 */
-export const PLAIN_TERMS: readonly string[] = ["ai", "api", "llm", "gpu", "agi", "ceo", "ipo"];
+/** Ogólne słowa branżowe (małymi literami), których podsumowania tygodnika i miesięcznika mogą używać bez źródła w pozycjach. Nazwa serwisu liczy się automatycznie. */
+export const PLAIN_TERMS: readonly string[] = ["lean", "opex", "tps", "kaizen", "gemba", "agile", "kanban", "scrum", "six sigma", "tpm", "oee", "kpi", "okr", "ai", "erp", "ceo", "cfo", "coo", "pmi", "sg&a", "ue"];
 
 /**
- * 内容理解一步给每篇资料判的“内容类型”（写在 prompts/content-understanding.md 里，改了类型要同步改那份提示词）。
- * 评分提示词（prompts/selection-score.md）按类型给五个维度不同的权重。
+ * Typ treści, który krok rozumienia przypisuje każdemu tekstowi (opisany w prompts/content-understanding.md;
+ * zmiana typów wymaga zmiany tego promptu). Prompt oceny (prompts/selection-score.md) daje typom różne wagi pięciu osi.
  */
-export const ITEM_TYPES = ["model_release", "product_launch", "tool_or_prompt", "research_paper", "industry_event", "opinion_analysis", "tutorial_explainer"] as const;
+export const ITEM_TYPES = ["case_study", "method_or_tool", "research_or_benchmark", "industry_event", "opinion_analysis", "tutorial_explainer", "announcement"] as const;
 
-// ── 标签词表 ────────────────────────────────────────────────────────────────────────────
+// ── Słownik tagów ──────────────────────────────────────────────────────────────────────────
 
-/** 每篇资料的第一个标签必须是这些“分类标签”之一。 */
+/** Pierwszy tag każdego tekstu musi być jednym z tych „tagów formy”. */
 export const CATEGORY_TAGS = [
-  "产品更新", "模型发布", "论文/研究", "开源/仓库", "教程/实践", "现象/趋势", "大佬观点", "评测/基准", "安全/对齐", "行业动态", "政策/监管",
-  "非AI/通用工具", "其他",
+  "Studium przypadku", "Metoda/narzędzie", "Badanie/benchmark", "Wydarzenie branżowe", "Regulacje/polityka", "Opinia/analiza", "Poradnik", "Ogłoszenie",
+  "Inne",
 ] as const;
 
-/** 可选的主题标签。 */
+/** Tagi tematyczne do wyboru. */
 export const TOPIC_TAGS = [
-  "Agent", "编码", "推理", "多模态", "语音", "视频", "图像生成", "RAG", "端侧", "数据/训练", "搜索", "部署/工程", "开源生态", "具身智能", "MCP/工具调用",
+  "Lean", "TPS", "Kaizen", "Standaryzacja", "Rozwiązywanie problemów", "Hoshin Kanri", "Six Sigma", "Jakość", "TPM", "Kanban", "Scrum",
+  "Agile na skalę", "Metryki przepływu", "OKR", "Koszty pośrednie", "Koszty pracy", "Zakupy", "Transport", "Magazyn", "Energia",
+  "Automatyzacja", "AI w operacjach", "Motoryzacja", "Przywództwo", "Zarządzanie zmianą",
 ] as const;
 
-/** 可选的实体标签（公司、机构、平台）。 */
-export const ENTITY_TAGS = ["OpenAI", "Anthropic", "DeepSeek", "DeepMind", "Google", "Meta", "Microsoft", "xAI", "Hugging Face", "GitHub", "arXiv"] as const;
+/** Tagi firm i instytucji do wyboru. */
+export const ENTITY_TAGS = ["Toyota", "Lean Enterprise Institute", "Shingo Institute", "Kanban University", "Scrum.org", "McKinsey", "BCG", "APQC", "Valeo", "Bosch"] as const;
 
-/** 模型常写的近义词，统一成词表里的写法。 */
+/** Synonimy, które model często pisze, sprowadzone do zapisu ze słownika. */
 export const TAG_SYNONYMS: Readonly<Record<string, string>> = {
-  "教程/玩法": "教程/实践", "技巧/最佳实践": "教程/实践", "合作/生态": "行业动态", "融资/收购": "行业动态", "公司动态": "行业动态",
-  合作: "行业动态", 生态: "行业动态", 融资: "行业动态", 收购: "行业动态", 投资: "行业动态", 并购: "行业动态",
-  政策: "政策/监管", 监管: "政策/监管", 法规: "政策/监管", 安全: "安全/对齐", 对齐: "安全/对齐",
-  论文: "论文/研究", 研究: "论文/研究", paper: "论文/研究", papers: "论文/研究",
-  "open-source": "开源/仓库", 开源: "开源/仓库", 仓库: "开源/仓库", repo: "开源/仓库",
-  教程: "教程/实践", 玩法: "教程/实践", 指南: "教程/实践", 技巧: "教程/实践", 最佳实践: "教程/实践", 实践: "教程/实践",
-  产品: "产品更新", 更新: "产品更新", 发布: "模型发布", 模型: "模型发布", 趋势: "现象/趋势", 现象: "现象/趋势", 观点: "大佬观点",
-  视频生成: "视频", 非ai: "非AI/通用工具", "non-ai": "非AI/通用工具", 通用工具: "非AI/通用工具", 工程工具: "非AI/通用工具",
-  安全扫描: "非AI/通用工具", devops: "非AI/通用工具", 行业: "行业动态", 动态: "行业动态",
+  "case study": "Studium przypadku", "studium": "Studium przypadku", wdrożenie: "Studium przypadku", "przykład wdrożenia": "Studium przypadku",
+  metoda: "Metoda/narzędzie", narzędzie: "Metoda/narzędzie", narzędzia: "Metoda/narzędzie", szablon: "Metoda/narzędzie", method: "Metoda/narzędzie", tool: "Metoda/narzędzie",
+  badanie: "Badanie/benchmark", raport: "Badanie/benchmark", benchmark: "Badanie/benchmark", ankieta: "Badanie/benchmark", research: "Badanie/benchmark",
+  "wydarzenie": "Wydarzenie branżowe", biznes: "Wydarzenie branżowe", inwestycja: "Wydarzenie branżowe", przejęcie: "Wydarzenie branżowe", news: "Wydarzenie branżowe",
+  regulacje: "Regulacje/polityka", polityka: "Regulacje/polityka", prawo: "Regulacje/polityka", cła: "Regulacje/polityka",
+  opinia: "Opinia/analiza", analiza: "Opinia/analiza", komentarz: "Opinia/analiza", wywiad: "Opinia/analiza", opinion: "Opinia/analiza",
+  poradnik: "Poradnik", tutorial: "Poradnik", wyjaśnienie: "Poradnik", "jak": "Poradnik", "how-to": "Poradnik",
+  ogłoszenie: "Ogłoszenie", konferencja: "Ogłoszenie", certyfikacja: "Ogłoszenie", książka: "Ogłoszenie", szkolenie: "Ogłoszenie",
+  "toyota production system": "TPS", "system produkcyjny toyoty": "TPS", "ciągłe doskonalenie": "Kaizen", "continuous improvement": "Kaizen",
+  "standard work": "Standaryzacja", "praca standaryzowana": "Standaryzacja", a3: "Rozwiązywanie problemów", "toyota kata": "Rozwiązywanie problemów",
+  "rozwiązywanie problemów": "Rozwiązywanie problemów", hoshin: "Hoshin Kanri", "strategy deployment": "Hoshin Kanri",
+  "lean six sigma": "Six Sigma", dmaic: "Six Sigma", quality: "Jakość", "zarządzanie jakością": "Jakość", "utrzymanie ruchu": "TPM", maintenance: "TPM",
+  "flow": "Metryki przepływu", "flow metrics": "Metryki przepływu", przepływ: "Metryki przepływu", safe: "Agile na skalę", "flight levels": "Agile na skalę",
+  overhead: "Koszty pośrednie", "sg&a": "Koszty pośrednie", "koszty ogólne": "Koszty pośrednie", procurement: "Zakupy", zaopatrzenie: "Zakupy",
+  fracht: "Transport", logistyka: "Transport", freight: "Transport", magazyn: "Magazyn", warehouse: "Magazyn", ai: "AI w operacjach", automotive: "Motoryzacja",
+  leadership: "Przywództwo", przywództwo: "Przywództwo", "change management": "Zarządzanie zmianą", "lei": "Lean Enterprise Institute",
 };
 
-// ── 公司与主体 ──────────────────────────────────────────────────────────────────────────
+// ── Firmy i instytucje ──────────────────────────────────────────────────────────────────────
 
 /**
- * 公司主题：id → 显示名、卡片上显示的标签（null 表示只用 entity:<id> 归类）、别名。
- * aliases 给结构抽取模型看；otherNames 是公司自己的其他称呼（官方账号名、子品牌），
- * 把事实的主体对到发布方时也认它们。
+ * Tematy firm: id → nazwa, tag na karcie (null: tylko grupowanie po entity:<id>), aliasy.
+ * aliases czyta model strukturyzujący; otherNames to inne nazwy samej firmy (konta, marki),
+ * uwzględniane też przy dopasowaniu wydawcy do firmy.
  */
 export const ENTITIES: Record<string, { name: string; displayTag: string | null; aliases: string[]; otherNames?: string[] }> = {
-  "world-labs": { name: "World Labs", displayTag: null, aliases: ["World Labs"] },
-  "thinking-machines": { name: "Thinking Machines Lab", displayTag: null, aliases: ["Thinking Machines"] },
-  amd: { name: "AMD", displayTag: null, aliases: ["AMD", "Advanced Micro Devices"] },
-  openai: { name: "OpenAI", displayTag: "OpenAI", aliases: ["OpenAI", "ChatGPT", "Sora", "Codex", "GPT"], otherNames: ["OpenAI Developers"] },
-  anthropic: { name: "Anthropic", displayTag: "Anthropic", aliases: ["Anthropic", "Claude"], otherNames: ["Claude Code"] },
-  google: { name: "Google", displayTag: "Google", aliases: ["Google", "DeepMind", "Gemini", "谷歌"], otherNames: ["Google DeepMind", "Google Research", "Google AI", "Google Labs", "Google Cloud"] },
-  deepseek: { name: "DeepSeek", displayTag: "DeepSeek", aliases: ["DeepSeek", "深度求索"] },
-  qwen: { name: "千问 Qwen", displayTag: null, aliases: ["Qwen", "通义", "阿里"], otherNames: ["通义千问", "千问", "千问APP", "Qwen Team", "通义实验室", "阿里巴巴", "Alibaba", "阿里云", "Alibaba Cloud"] },
-  kimi: { name: "Kimi / 月之暗面", displayTag: null, aliases: ["Kimi", "月之暗面", "Moonshot"], otherNames: ["Moonshot AI"] },
-  minimax: { name: "MiniMax", displayTag: null, aliases: ["MiniMax", "海螺"], otherNames: ["稀宇科技"] },
-  zhipu: { name: "智谱 GLM", displayTag: null, aliases: ["智谱", "GLM", "Z.ai"], otherNames: ["智谱AI", "Zhipu", "Zhipu AI"] },
-  xai: { name: "xAI", displayTag: "xAI", aliases: ["xAI", "Grok"], otherNames: ["SpaceXAI"] },
-  meta: { name: "Meta", displayTag: "Meta", aliases: ["Meta", "Llama"], otherNames: ["Meta AI", "AI at Meta"] },
-  microsoft: { name: "Microsoft", displayTag: "Microsoft", aliases: ["Microsoft", "微软", "Copilot"], otherNames: ["Microsoft Research", "Microsoft AI"] },
-  nvidia: { name: "NVIDIA", displayTag: null, aliases: ["NVIDIA", "英伟达"] },
-  "hugging-face": { name: "Hugging Face", displayTag: "Hugging Face", aliases: ["Hugging Face"], otherNames: ["HuggingFace"] },
-  cursor: { name: "Cursor", displayTag: null, aliases: ["Cursor", "Anysphere"] },
-  openrouter: { name: "OpenRouter", displayTag: null, aliases: ["OpenRouter"] },
+  toyota: { name: "Toyota", displayTag: "Toyota", aliases: ["Toyota", "Toyota Motor", "TPS"], otherNames: ["Toyota Motor Corporation", "Toyota Times", "Toyota Motor Manufacturing"] },
+  lei: { name: "Lean Enterprise Institute", displayTag: "Lean Enterprise Institute", aliases: ["Lean Enterprise Institute", "LEI"], otherNames: ["Lean Global Network", "Planet Lean", "Institut Lean France", "Instituto Lean Management", "LEI Polska"] },
+  shingo: { name: "Shingo Institute", displayTag: "Shingo Institute", aliases: ["Shingo Institute", "Shingo Prize", "Nagroda Shingo"] },
+  "kanban-university": { name: "Kanban University", displayTag: "Kanban University", aliases: ["Kanban University", "David J. Anderson School of Management"] },
+  "scrum-org": { name: "Scrum.org", displayTag: "Scrum.org", aliases: ["Scrum.org", "Scrum Alliance"] },
+  mckinsey: { name: "McKinsey", displayTag: "McKinsey", aliases: ["McKinsey", "McKinsey & Company"] },
+  bcg: { name: "BCG", displayTag: "BCG", aliases: ["BCG", "Boston Consulting Group"] },
+  apqc: { name: "APQC", displayTag: "APQC", aliases: ["APQC", "American Productivity & Quality Center"] },
+  valeo: { name: "Valeo", displayTag: "Valeo", aliases: ["Valeo"] },
+  bosch: { name: "Bosch", displayTag: "Bosch", aliases: ["Bosch", "Robert Bosch"] },
+  stellantis: { name: "Stellantis", displayTag: null, aliases: ["Stellantis", "Fiat", "Peugeot", "Opel"] },
+  volkswagen: { name: "Volkswagen", displayTag: null, aliases: ["Volkswagen", "VW", "Grupa Volkswagen"] },
 };
 
 /**
- * 身份词典：摘要和标题里出现的公司，必须在原文里也出现过，否则退回原标题、丢掉摘要（防止模型张冠李戴）。
- * 行业没有这个问题时可以留空数组。
+ * Słownik tożsamości: firma pojawiająca się w tytule lub streszczeniu musi występować też w oryginale,
+ * inaczej tytuł wraca do oryginału, a streszczenie wypada (ochrona przed pomyleniem firm).
  */
 export const IDENTITY_LEXICON: ReadonlyArray<{ id: string; name: string; patterns: RegExp[] }> = [
-  { id: "openai", name: "OpenAI", patterns: [/openai|chatgpt|\bgpt-?[o\d]|\bsora\b|\bcodex\b/i] },
-  { id: "anthropic", name: "Anthropic", patterns: [/anthropic|\bclaude\b/i, /\b(?:opus|sonnet|haiku)\s*\d+(?:[.\-]\d+)*\b/i, /\bfable\s*\d+(?:[.\-]\d+)*\b|\bmythos\b/i] },
-  { id: "google", name: "Google / Gemini", patterns: [/google|deepmind|\bgemini\b|notebooklm|\bveo\s?\d|\bAlphaFold\b|\bAMIE\b/i] },
-  { id: "deepseek", name: "DeepSeek", patterns: [/deepseek|深度求索/i] },
-  { id: "xai", name: "xAI / Grok", patterns: [/\bxai\b|\bgrok\b/i] },
-  { id: "meta", name: "Meta / Llama", patterns: [/\bMeta\b/, /\bmeta\s?ai\b|\bllama\b/i] },
-  { id: "microsoft", name: "Microsoft / Copilot", patterns: [/microsoft|copilot|微软/i] },
-  { id: "nvidia", name: "NVIDIA", patterns: [/nvidia|英伟达|\bnemotron\b|\bnemo\b|\bblackwell\b|\brubin(?:\s+ultra)?\b|\bcuda\b/i] },
-  { id: "qwen", name: "千问 Qwen", patterns: [/\bqwen|通义|千问/i] },
-  { id: "hugging-face", name: "Hugging Face", patterns: [/hugging\s?face/i] },
-  { id: "cursor", name: "Cursor", patterns: [/\bCursor\b/] },
-  { id: "kimi", name: "Kimi / 月之暗面", patterns: [/\bkimi\b|月之暗面|\bmoonshot\s?ai\b/i] },
-  { id: "openrouter", name: "OpenRouter", patterns: [/openrouter/i] },
-  { id: "minimax", name: "MiniMax", patterns: [/minimax/i] },
-  { id: "zhipu", name: "智谱 GLM", patterns: [/智谱|\bglm-?[4-9]/i] },
-  { id: "hunyuan", name: "腾讯混元", patterns: [/混元|hunyuan/i] },
-  { id: "doubao", name: "字节豆包", patterns: [/豆包|doubao|字节跳动|bytedance/i] },
-  { id: "mistral", name: "Mistral", patterns: [/mistral/i] },
-  { id: "perplexity", name: "Perplexity", patterns: [/\bPerplexity\b/] },
-  { id: "runway", name: "Runway", patterns: [/\brunway\b/i] },
-  { id: "suno", name: "Suno", patterns: [/\bsuno\b/i] },
-  { id: "midjourney", name: "Midjourney", patterns: [/midjourney/i] },
-  { id: "stability-ai", name: "Stability AI", patterns: [/stability\s?ai/i] },
-  { id: "elevenlabs", name: "ElevenLabs", patterns: [/eleven\s?labs/i] },
-  { id: "vllm", name: "vLLM", patterns: [/\bvllm\b/i] },
-  { id: "ollama", name: "Ollama", patterns: [/\bollama\b/i] },
-  { id: "windsurf", name: "Windsurf", patterns: [/windsurf/i] },
-  { id: "devin", name: "Devin", patterns: [/\bdevin\b/i] },
-  { id: "manus", name: "Manus", patterns: [/\bmanus\b/i] },
-  { id: "apple", name: "Apple AI", patterns: [/\bapple\s?(intelligence|silicon|ai)\b|苹果(智能|\s?AI)/i] },
-  { id: "amazon", name: "Amazon / AWS", patterns: [/amazon|\baws\b|亚马逊/i] },
-  { id: "baidu", name: "百度文心", patterns: [/百度|baidu|文心|\bernie\s?bot\b/i] },
+  { id: "toyota", name: "Toyota", patterns: [/\btoyot/i] },
+  { id: "lei", name: "Lean Enterprise Institute", patterns: [/lean enterprise institute|\bLEI\b|planet lean|institut lean|instituto lean/i] },
+  { id: "shingo", name: "Shingo Institute", patterns: [/\bshingo\b/i] },
+  { id: "kanban-university", name: "Kanban University", patterns: [/kanban university/i] },
+  { id: "scrum-org", name: "Scrum.org", patterns: [/scrum\.org|scrum alliance/i] },
+  { id: "mckinsey", name: "McKinsey", patterns: [/mckinsey/i] },
+  { id: "bcg", name: "BCG", patterns: [/\bBCG\b|boston consulting/i] },
+  { id: "kearney", name: "Kearney", patterns: [/\bkearney\b/i] },
+  { id: "bain", name: "Bain", patterns: [/\bbain\b/i] },
+  { id: "hackett", name: "The Hackett Group", patterns: [/hackett/i] },
+  { id: "apqc", name: "APQC", patterns: [/\bAPQC\b/i] },
+  { id: "gartner", name: "Gartner", patterns: [/gartner/i] },
+  { id: "valeo", name: "Valeo", patterns: [/\bvaleo\b/i] },
+  { id: "bosch", name: "Bosch", patterns: [/\bbosch/i] },
+  { id: "forvia", name: "Forvia", patterns: [/forvia|faurecia/i] },
+  { id: "continental", name: "Continental", patterns: [/\bcontinental\s?(ag|automotive)?\b/i] },
+  { id: "zf", name: "ZF", patterns: [/\bZF\b/] },
+  { id: "stellantis", name: "Stellantis", patterns: [/stellantis/i] },
+  { id: "volkswagen", name: "Volkswagen", patterns: [/volkswagen|\bVW\b/i] },
+  { id: "renault", name: "Renault", patterns: [/\brenault\b/i] },
+  { id: "bmw", name: "BMW", patterns: [/\bBMW\b/] },
+  { id: "mercedes", name: "Mercedes-Benz", patterns: [/mercedes/i] },
+  { id: "tesla", name: "Tesla", patterns: [/\btesla\b/i] },
+  { id: "byd", name: "BYD", patterns: [/\bBYD\b/] },
+  { id: "maersk", name: "Maersk", patterns: [/maersk/i] },
+  { id: "amazon", name: "Amazon", patterns: [/amazon/i] },
 ];
 
-/** 这些域名上的文章，发布方就是对应的公司（托管平台如 GitHub、arXiv 不算）。 */
+/** Artykuły z tych domen publikuje odpowiednia instytucja lub firma (platformy hostingowe się nie liczą). */
 export const PUBLISHER_DOMAINS: ReadonlyArray<{ entityId: string; domains: readonly string[] }> = [
-  { entityId: "openai", domains: ["openai.com"] },
-  { entityId: "anthropic", domains: ["anthropic.com", "claude.com"] },
-  { entityId: "google", domains: ["deepmind.google", "ai.google", "blog.google"] },
-  { entityId: "deepseek", domains: ["deepseek.com"] },
-  { entityId: "xai", domains: ["x.ai"] },
-  { entityId: "meta", domains: ["ai.meta.com"] },
-  { entityId: "microsoft", domains: ["microsoft.com"] },
-  { entityId: "nvidia", domains: ["nvidia.com"] },
-  { entityId: "qwen", domains: ["qwen.ai"] },
-  { entityId: "cursor", domains: ["cursor.com"] },
-  { entityId: "openrouter", domains: ["openrouter.ai"] },
+  { entityId: "toyota", domains: ["global.toyota", "toyota-global.com", "toyotatimes.jp"] },
+  { entityId: "lei", domains: ["lean.org", "planet-lean.com", "institut-lean-france.fr", "institutolean.org", "lean.org.pl"] },
+  { entityId: "shingo", domains: ["shingo.org"] },
+  { entityId: "kanban-university", domains: ["kanban.university", "djaa.com"] },
+  { entityId: "scrum-org", domains: ["scrum.org"] },
+  { entityId: "mckinsey", domains: ["mckinsey.com"] },
+  { entityId: "bcg", domains: ["bcg.com"] },
+  { entityId: "apqc", domains: ["apqc.org"] },
+  { entityId: "valeo", domains: ["valeo.com"] },
+  { entityId: "bosch", domains: ["bosch.com"] },
 ];
 
-/** 原文里的这些写法也算提到了对应公司。 */
+/** Te zapisy w oryginale też liczą się jako wzmianka o danej firmie. */
 export const IDENTITY_CONTEXT_ALIASES: ReadonlyArray<{ entityId: string; pattern: RegExp }> = [
-  { entityId: "meta", pattern: /@AIatMeta\b/i },
-  { entityId: "zhipu", pattern: /\bZhipu(?:\s+AI\b|['’]s\b)/i },
+  { entityId: "toyota", pattern: /\bTPS\b|toyota production system/i },
 ];

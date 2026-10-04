@@ -43,11 +43,24 @@ interface TopicFile {
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const nameParts = (name: string) => name.split("/").map((s) => s.trim()).filter(Boolean);
 
-/** Any name of the company: the topic's name and its parts, the subject's names. Latin names match as whole words. */
+/** Letters of the reader's language and its sources: a name never matches inside a longer word. */
+const LETTER = "A-Za-zÀ-ÖØ-öø-ž";
+
+/**
+ * A name as Polish titles decline it: "Toyota" also as "Toyoty", "Toyotę"; "Bosch" also as "Boscha",
+ * "Boschem". Names that end in a letter take a case ending; the rest (acronyms with digits) stay as written.
+ */
+function declined(name: string): string {
+  if (!/[a-z]$/i.test(name) || /[A-Z]{2,}$/.test(name)) return escape(name);
+  if (/a$/i.test(name)) return `${escape(name.slice(0, -1))}(?:a|y|ę|ą|ie|zie|om|ach|ami)`;
+  return `${escape(name)}(?:a|u|owi|em|ie|y|ą|ę|om|ów|ach|ami)?`;
+}
+
+/** Any name of the company: the topic's name and its parts, the subject's names. Latin names match as whole words, in any case. */
 function titlePattern(name: string, entityId: string): string {
   const e = ENTITIES[entityId];
   const names = new Set([name, ...nameParts(name), ...(e ? [e.name, ...e.aliases, ...(e.otherNames ?? [])] : [])]);
-  return `(?<![A-Za-z])(${[...names].map(escape).join("|")})(?![A-Za-z])`;
+  return `(?<![${LETTER}])(${[...names].map(declined).join("|")})(?![${LETTER}])`;
 }
 
 const file = JSON.parse(readFileSync(path.join(REPO_ROOT, "industry/topics.json"), "utf8")) as TopicFile;

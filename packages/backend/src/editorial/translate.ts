@@ -18,6 +18,7 @@ import { modelFor } from "./models.ts";
 import { shutdownSignal } from "../jobs/queue.ts";
 import { promptText, promptVersion } from "./prompts.ts";
 import { emit } from "../modules.ts";
+import { isReaderLanguage, looksPolish } from "../lib/language.ts";
 
 export const TRANSLATE_PROMPT_VERSION = promptVersion("translate-body", "translate-post");
 const BATCH_CHARS = 3500;
@@ -46,7 +47,6 @@ export interface TranslateResult {
   reason?: string;
 }
 
-const isChinese = (language: string | null, sample: string) => language === "zh" || (/[一-鿿]/.test(sample.slice(0, 400)) && language !== "en");
 
 /** Leaf text blocks of a sanitised body, in document order, skipping code. */
 function segmentsOf($: cheerio.CheerioAPI): Element[] {
@@ -166,7 +166,7 @@ export async function translateArticle(articleId: string): Promise<TranslateResu
   if (row.channel === "x") {
     const text = String(row.x_post?.text ?? row.body_text ?? "").trim();
     const meaningful = collapseWhitespace(text.replace(/https?:\/\/\S+/g, ""));
-    if (isChinese(row.language, text)) return result({ status: "skipped", reason: "already Chinese" });
+    if (isReaderLanguage(row.language, text)) return result({ status: "skipped", reason: "already Polish" });
     if (meaningful.length < X_MIN_CHARS) return result({ status: "skipped", reason: "short post" });
     const [t] = await translateAll(articleId, row.revision, [text], SYSTEM_POST);
     if (!t) return result({ status: "skipped", reason: "translation did not line up" });
@@ -174,7 +174,7 @@ export async function translateArticle(articleId: string): Promise<TranslateResu
     return result({ status: "translated", segments: 1 });
   }
 
-  if (!row.body_html || isChinese(row.language, row.body_text ?? "")) return result({ status: "skipped", reason: "no foreign-language body" });
+  if (!row.body_html || isReaderLanguage(row.language, row.body_text ?? "")) return result({ status: "skipped", reason: "no foreign-language body" });
   const $ = cheerio.load(row.body_html, null, false);
   const blocks = segmentsOf($);
   if (!blocks.length) return result({ status: "skipped", reason: "no translatable text" });
@@ -227,10 +227,10 @@ async function store(articleId: string, revision: number, title: string, html: s
   });
 }
 
-/** A quoted post worth translating: at least a few letters beyond its links, and not already Chinese. */
+/** A quoted post worth translating: at least a few letters beyond its links, and not already Polish. */
 function quoteTranslatable(text: string): boolean {
   const words = collapseWhitespace(text.replace(/https?:\/\/\S+/g, " "));
-  return words.length >= 10 && (words.match(/\p{L}/gu) ?? []).length >= 2 && !/[一-鿿]/.test(words);
+  return words.length >= 10 && (words.match(/\p{L}/gu) ?? []).length >= 2 && !looksPolish(words);
 }
 
 /**

@@ -2,6 +2,9 @@
 import type { SourceRow } from "./types.ts";
 
 /** The offset a source's article pages print their dates in: its detail rules' own, else its listing's. */
+/** Offset for a source's date-time printed without a zone, unless its config names one: Central European Time. */
+export const DEFAULT_UTC_OFFSET = "+01:00";
+
 export function articleUtcOffset(config: SourceRow["config"]): string | undefined {
   return config.detail?.publishedAtUtcOffset ?? config.publishedAtUtcOffset;
 }
@@ -21,14 +24,34 @@ function atOffset(y: string | number, mo: string | number, d: string | number, h
   return Number.isFinite(t) ? new Date(t) : null;
 }
 
+/** Month names (Polish genitive and nominative, French, Spanish) to the English short names Date.parse reads. */
+const MONTHS: ReadonlyArray<[RegExp, string]> = [
+  [/(?<!\p{L})(stycznia|styczeń|janvier|enero)(?!\p{L})/giu, "Jan"], [/(?<!\p{L})(lutego|luty|février|fevrier|febrero)(?!\p{L})/giu, "Feb"],
+  [/(?<!\p{L})(marca|marzec|mars|marzo)(?!\p{L})/giu, "Mar"], [/(?<!\p{L})(kwietnia|kwiecień|avril|abril)(?!\p{L})/giu, "Apr"],
+  [/(?<!\p{L})(maja|maj|mai|mayo)(?!\p{L})/giu, "May"], [/(?<!\p{L})(czerwca|czerwiec|juin|junio)(?!\p{L})/giu, "Jun"],
+  [/(?<!\p{L})(lipca|lipiec|juillet|julio)(?!\p{L})/giu, "Jul"], [/(?<!\p{L})(sierpnia|sierpień|août|aout|agosto)(?!\p{L})/giu, "Aug"],
+  [/(?<!\p{L})(września|wrzesień|septembre|septiembre|setiembre)(?!\p{L})/giu, "Sep"], [/(?<!\p{L})(października|październik|octobre|octubre)(?!\p{L})/giu, "Oct"],
+  [/(?<!\p{L})(listopada|listopad|novembre|noviembre)(?!\p{L})/giu, "Nov"], [/(?<!\p{L})(grudnia|grudzień|décembre|decembre|diciembre)(?!\p{L})/giu, "Dec"],
+];
+
+/**
+ * European ways of printing a date, rewritten into forms the parser below reads: "26.09.2026" (day first)
+ * becomes 2026-09-26, and "26 września 2026", "26 septembre 2026", "26 de septiembre de 2026" become "26 Sep 2026".
+ */
+function europeanDate(v: string): string {
+  let out = v.replace(/\b(\d{1,2})\.(\d{1,2})\.(\d{4})\b/, (_m, d: string, mo: string, y: string) => `${y}-${mo.padStart(2, "0")}-${d.padStart(2, "0")}`);
+  for (const [re, en] of MONTHS) out = out.replace(re, en);
+  return out.replace(/(\d{1,2})\s+de\s+([A-Z][a-z]{2})\s+de\s+(\d{4})/, "$1 $2 $3").replace(/(\d{1,2})\s+([A-Z][a-z]{2})\s+(\d{4})\s*r\.?/, "$1 $2 $3");
+}
+
 /**
  * A published date as a source prints it. Date.parse is kept only where it reads the same
  * on every host: a time with its zone, and an ISO date alone (UTC midnight). Anything else it would read
  * in the server's local zone (UTC in Docker), so "2026-09-26 10:00" is read in the source's offset instead.
  */
-export function parseLooseDate(value: string | null | undefined, utcOffset = "+08:00"): Date | null {
+export function parseLooseDate(value: string | null | undefined, utcOffset = DEFAULT_UTC_OFFSET): Date | null {
   if (!value) return null;
-  const v = value.trim();
+  const v = europeanDate(value.trim());
   if (!v) return null;
   const numeric = /(\d{4})[-/.年](\d{1,2})[-/.月](\d{1,2})日?(?:(?:T|\s*)(\d{1,2}):(\d{2})(?::(\d{2}))?)?/.exec(v);
   if (numeric && !calendarDay(numeric[1]!, numeric[2]!, numeric[3]!)) return null;

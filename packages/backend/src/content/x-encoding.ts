@@ -29,7 +29,7 @@ export function xEncodingMaterialHash(a: XEncodingMaterial): string {
 // Stored post text already has expanded URLs. Their bytes were not encoded as post prose.
 const decodeStoredPost = (text: string) => text.replace(/https?:\/\/\S+|&(?:amp|lt|gt);/g,
   part => /^https?:\/\//.test(part) ? part : decodeTweetEntities(part));
-const postBody = (post: XPostData) => [post.text, post.quoted ? `\n\n【引用 @${post.quoted.handle}】${post.quoted.text}` : ""].join("").trim();
+const postBody = (post: XPostData) => [post.text, post.quoted ? `\n\n【Cytat @${post.quoted.handle}】${post.quoted.text}` : ""].join("").trim();
 
 /** Pure plan for operator review; unexpected shapes are refused instead of guessed. */
 export function xEncodingRepairPlan(a: XEncodingMaterial) {

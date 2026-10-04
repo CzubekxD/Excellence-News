@@ -1,34 +1,34 @@
-# 隐私说明
+# Prywatność
 
-这是开源框架自带的模板，只写了这套软件默认会处理哪些数据。上线前请按你的实际情况改写（运营主体、联系方式、你另外接入的统计或服务），必要时请专业人士审阅。
+To szablon dołączony do otwartego frameworka i opisuje tylko dane, które to oprogramowanie domyślnie przetwarza. Przed startem dopasuj go do swojej sytuacji (kto prowadzi serwis, kontakt, dodatkowe usługi analityczne), a w razie potrzeby skonsultuj z prawnikiem (RODO).
 
-| 项 | 值 |
+| Pozycja | Wartość |
 |---|---|
-| 版本 | 请填写 |
-| 生效日期 | 请填写 |
-| 运营主体 | 请填写 |
-| 联系方式 | 请填写 |
+| Wersja | do uzupełnienia |
+| Obowiązuje od | do uzupełnienia |
+| Administrator danych | do uzupełnienia |
+| Kontakt | do uzupełnienia |
 
-页首说明：
+Wstęp na górze strony:
 
-> 使用本站不需要注册或登录。我们只处理让网站正常运行、处理反馈所必需的信息，不出售个人信息。
+> Korzystanie z serwisu nie wymaga rejestracji ani logowania. Przetwarzamy tylko informacje potrzebne do działania serwisu i obsługi opinii; nie sprzedajemy danych osobowych.
 
-## 1. 浏览器本地数据
+## 1. Dane w przeglądarce
 
-收藏、已读记录、深浅色设置、最近搜索（你搜过的词，最多 10 条）、更新日志已读状态和反馈草稿保存在你当前的浏览器里；返回时的列表位置、滚动位置和展开状态只存在当前标签页的会话存储里，关闭标签页即清除。这些都不会发送到服务器。清除浏览器数据后它们会消失；换设备不会同步。收藏、已读记录和深浅色设置可以在“收藏”页导出和导入。
+Zakładki, historia przeczytanych, motyw jasny lub ciemny, ostatnie wyszukiwania (do 10), stan przeczytania listy zmian i szkic opinii są zapisywane w Twojej przeglądarce; pozycja listy, przewinięcie i rozwinięte elementy tylko w pamięci sesji bieżącej karty i znikają po jej zamknięciu. Nic z tego nie trafia na serwer. Wyczyszczenie danych przeglądarki je usuwa; nie ma synchronizacji między urządzeniami. Zakładki, historię i motyw można wyeksportować i zaimportować na stronie „Zakładki”.
 
-## 2. 反馈
+## 2. Opinie
 
-你在反馈页提交的内容、选填的邮箱、提交时所在页面的地址，以及你选择附上的截图，会保存在服务器上，用于处理你的反馈。站点配置了飞书内部群时，反馈会转发到那个群，截图上传到飞书后服务器上不再保留。为防止滥用，服务器会保存一个由网络地址和浏览器类别计算出的、无法还原的标识，用于限流和封禁滥用来源。
+Treść wysłana przez stronę opinii, opcjonalny e-mail, adres strony, z której wysłano opinię, i dołączony zrzut ekranu są przechowywane na serwerze w celu obsługi opinii. Aby zapobiegać nadużyciom, serwer zapisuje nieodwracalny identyfikator wyliczony z adresu sieciowego i typu przeglądarki, używany do limitów i blokowania nadużyć.
 
-## 3. 服务器与网络日志
+## 3. Logi serwera i sieci
 
-本软件默认不做访客统计。你的服务器、反向代理或 CDN 可能会按它们自己的配置记录访问日志（如 IP 地址、访问时间、页面地址、浏览器信息）。请在这里写明你实际使用的服务和保存期限。
+Oprogramowanie domyślnie nie prowadzi statystyk odwiedzin. Twój serwer, reverse proxy lub CDN mogą zapisywać logi dostępu według własnej konfiguracji (np. adres IP, czas, adres strony, informacje o przeglądarce). Opisz tutaj usługi, z których faktycznie korzystasz, i okres przechowywania.
 
-## 4. 第三方内容
+## 4. Treści zewnętrzne
 
-本站展示的是第三方原文的摘要与链接。点击原文链接后，你访问的是对方网站，适用对方的隐私政策。
+Serwis pokazuje streszczenia i linki do tekstów zewnętrznych. Po kliknięciu linku do oryginału trafiasz na stronę wydawcy, gdzie obowiązuje jego polityka prywatności.
 
-## 5. 联系我们
+## 5. Kontakt
 
-请写明联系方式，以及查询、更正或删除反馈资料的方式。
+Podaj dane kontaktowe oraz sposób uzyskania dostępu do danych z opinii, ich poprawienia lub usunięcia.

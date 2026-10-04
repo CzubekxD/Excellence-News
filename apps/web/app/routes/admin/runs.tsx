@@ -15,16 +15,16 @@ export async function loader({ request }: Route.LoaderArgs) {
   return adminGet<AdminRuns>(request, "/api/admin/runs");
 }
 
-export const meta: Route.MetaFunction = () => [{ title: `运行 · ${SITE.name} 后台` }];
+export const meta: Route.MetaFunction = () => [{ title: `Działanie · panel ${SITE.name}` }];
 
-const STATE_LABEL: Record<string, string> = { created: "排队", retry: "等待重试", active: "执行中" };
+const STATE_LABEL: Record<string, string> = { created: "W kolejce", retry: "Czeka na ponowienie", active: "W toku" };
 
 const PARTS = await loadParts((m) => m.admin?.runs);
 
 /** Who reports through the ingest API, named when nothing has reported yet: the modules' clients first. */
 const ingestClients = () => [
   ...webModules().flatMap((m) => m.admin?.ingestClients ?? []),
-  "采集脚本",
+  "skrypty pobierające (np. n8n)",
 ];
 
 export default function RunsAdmin({ loaderData }: Route.ComponentProps) {
@@ -51,138 +51,138 @@ export default function RunsAdmin({ loaderData }: Route.ComponentProps) {
   const failing = r.jobs.filter((j) => j.status === "failed");
 
   return (
-    <AdminPage title="运行" subtitle={<>任务、队列、信源延迟与需要人工核对的回执和投递。每 20 秒自动刷新 · 最近检查 {bj(r.checkedAt)}</>}>
+    <AdminPage title="Działanie" subtitle={<>Zadania, kolejki, opóźnienia źródeł oraz pokwitowania i wysyłki do ręcznego sprawdzenia. Odświeża się co 20 s · ostatnio {bj(r.checkedAt)}</>}>
       <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-5">
         <Stat
           label="worker"
-          value={<span className="inline-flex items-center gap-2 text-[18px]"><Dot tone={worker?.alive ? "ok" : "bad"} />{worker ? (worker.alive ? "运行中" : "心跳中断") : "无心跳"}</span>}
-          hint={worker ? `${worker.host} · 心跳 ${ago(worker.at)}` : "worker 未上报心跳"}
+          value={<span className="inline-flex items-center gap-2 text-[18px]"><Dot tone={worker?.alive ? "ok" : "bad"} />{worker ? (worker.alive ? "działa" : "brak sygnału") : "nie zgłasza się"}</span>}
+          hint={worker ? `${worker.host} · sygnał ${ago(worker.at)}` : "worker nie wysłał sygnału życia"}
         />
-        <Stat label="队列积压" value={num(queued)} tone={queued > 500 ? "warn" : undefined} hint="排队与等待重试" />
-        <Stat label="失败的定时任务" value={num(failing.length)} tone={failing.length ? "bad" : "ok"} hint="最近一次运行失败" />
-        <Stat label="回执结果未知" value={num(r.receipts.issues.filter((x) => x.status === "unknown").length)} tone={r.receipts.issues.some((x) => x.status === "unknown") ? "bad" : "ok"} hint={`7 天 ${num(Object.values(r.receipts.counts).reduce((a, b) => a + b, 0))} 次付费请求`} />
-        <Stat label="投递待核实" value={num(r.deliveries.filter((d) => d.status === "unknown").length)} tone={r.deliveries.some((d) => d.status === "unknown") ? "bad" : "ok"} />
+        <Stat label="Zaległości w kolejce" value={num(queued)} tone={queued > 500 ? "warn" : undefined} hint="w kolejce i czekające na ponowienie" />
+        <Stat label="Nieudane zadania cykliczne" value={num(failing.length)} tone={failing.length ? "bad" : "ok"} hint="ostatnie uruchomienie nieudane" />
+        <Stat label="Pokwitowania bez wyniku" value={num(r.receipts.issues.filter((x) => x.status === "unknown").length)} tone={r.receipts.issues.some((x) => x.status === "unknown") ? "bad" : "ok"} hint={`płatne zapytania w 7 dni: ${num(Object.values(r.receipts.counts).reduce((a, b) => a + b, 0))}`} />
+        <Stat label="Wysyłki do sprawdzenia" value={num(r.deliveries.filter((d) => d.status === "unknown").length)} tone={r.deliveries.some((d) => d.status === "unknown") ? "bad" : "ok"} />
       </div>
 
       {r.grouping.waiting > 0 && (
-        <Card className="mb-5" title="等待去重确认的精选" right={<span>{num(r.grouping.waiting)} 条等待 · {num(r.grouping.needsAttention)} 条超过 10 分钟</span>} pad={false}>
-          <p className="px-4 py-3 text-[13px] text-ink-3">这些新闻已达到精选条件，确认是否重复后才会进入精选。最多展示等待最久的 30 条。</p>
+        <Card className="mb-5" title="Wybrane czekające na sprawdzenie duplikatów" right={<span>czeka: {num(r.grouping.waiting)} · ponad 10 min: {num(r.grouping.needsAttention)}</span>} pad={false}>
+          <p className="px-4 py-3 text-[13px] text-ink-3">Te wiadomości spełniły warunki wyboru i trafią do wybranych po sprawdzeniu, czy nie są duplikatami. Widać najwyżej 30 czekających najdłużej.</p>
           <DataTable dense rows={r.grouping.items} rowKey={(item) => item.articleId} columns={[
-            { key: "title", label: "新闻", render: (item) => <Link className="text-accent" to={`/admin/content/${item.articleId}`}>{item.title}</Link> },
-            { key: "since", label: "开始等待", render: (item) => <Time at={item.since} /> },
-            { key: "recovery", label: "下一步", render: (item) => <Badge tone={item.recovery === "manual" ? "bad" : "warn"}>{item.recovery === "manual" ? "需处理后恢复" : item.recovery === "receipt" ? "等待付费结果自动恢复" : "自动处理中"}</Badge> },
-            { key: "error", label: "原因", render: (item) => <span className="line-clamp-2 text-[12px] text-ink-3">{item.receiptId ? `回执 #${item.receiptId} · ` : ""}{item.error ?? "等待身份确认"}</span> },
+            { key: "title", label: "Wiadomość", render: (item) => <Link className="text-accent" to={`/admin/content/${item.articleId}`}>{item.title}</Link> },
+            { key: "since", label: "Czeka od", render: (item) => <Time at={item.since} /> },
+            { key: "recovery", label: "Dalej", render: (item) => <Badge tone={item.recovery === "manual" ? "bad" : "warn"}>{item.recovery === "manual" ? "wymaga interwencji" : item.recovery === "receipt" ? "czeka na wynik płatnego zapytania" : "obsługa automatyczna"}</Badge> },
+            { key: "error", label: "Powód", render: (item) => <span className="line-clamp-2 text-[12px] text-ink-3">{item.receiptId ? `pokwitowanie #${item.receiptId} · ` : ""}{item.error ?? "czeka na potwierdzenie tożsamości"}</span> },
           ]} />
         </Card>
       )}
 
       <div className="grid gap-5 xl:grid-cols-2">
-        <Card title="队列" pad={false}>
+        <Card title="Kolejki" pad={false}>
           <DataTable
             dense
             rows={[...backlog.entries()]}
             rowKey={([name]) => name}
-            empty="队列是空的"
+            empty="Kolejki są puste"
             columns={[
-              { key: "n", label: "队列", render: ([name]) => <span className="font-mono text-[12.5px]">{name}</span> },
+              { key: "n", label: "Kolejka", render: ([name]) => <span className="font-mono text-[12.5px]">{name}</span> },
               ...(["created", "retry", "active"] as const).map((st) => ({
                 key: st,
                 label: STATE_LABEL[st],
                 align: "right" as const,
-                render: ([, v]: [string, Record<string, { n: number; oldest: string }>]) => (v[st] ? <span title={`最早 ${bj(v[st]!.oldest, true)}`}>{num(v[st]!.n)}</span> : <span className="text-ink-4">0</span>),
+                render: ([, v]: [string, Record<string, { n: number; oldest: string }>]) => (v[st] ? <span title={`najstarsze ${bj(v[st]!.oldest, true)}`}>{num(v[st]!.n)}</span> : <span className="text-ink-4">0</span>),
               })),
-              { key: "old", label: "最早排队", render: ([, v]) => <Time at={v.created?.oldest ?? v.retry?.oldest ?? null} /> },
+              { key: "old", label: "Najstarsze w kolejce", render: ([, v]) => <Time at={v.created?.oldest ?? v.retry?.oldest ?? null} /> },
             ]}
           />
         </Card>
-        <Card title="定时任务" pad={false}>
+        <Card title="Zadania cykliczne" pad={false}>
           <DataTable
             dense
             rows={r.jobs}
             rowKey={(j) => j.job}
             columns={[
-              { key: "j", label: "任务", render: (j) => <span className="font-mono text-[12.5px]">{j.job}</span> },
-              { key: "s", label: "上次", render: (j) => <Badge tone={j.status === "ok" ? "ok" : j.status === "failed" ? "bad" : "muted"} title={j.error ?? undefined}>{j.status ?? "运行中"}</Badge> },
-              { key: "at", label: "时间", render: (j) => <Time at={j.started_at} /> },
-              { key: "d", label: "耗时", align: "right", render: (j) => duration(j.started_at, j.finished_at) },
-              { key: "f", label: "24h 失败", align: "right", render: (j) => (j.failed_24h ? <span className="text-hot">{j.failed_24h}/{j.runs_24h}</span> : `0/${j.runs_24h}`) },
+              { key: "j", label: "Zadanie", render: (j) => <span className="font-mono text-[12.5px]">{j.job}</span> },
+              { key: "s", label: "Ostatnio", render: (j) => <Badge tone={j.status === "ok" ? "ok" : j.status === "failed" ? "bad" : "muted"} title={j.error ?? undefined}>{j.status ?? "w toku"}</Badge> },
+              { key: "at", label: "Czas", render: (j) => <Time at={j.started_at} /> },
+              { key: "d", label: "Czas trwania", align: "right", render: (j) => duration(j.started_at, j.finished_at) },
+              { key: "f", label: "Błędy 24 h", align: "right", render: (j) => (j.failed_24h ? <span className="text-hot">{j.failed_24h}/{j.runs_24h}</span> : `0/${j.runs_24h}`) },
             ]}
           />
         </Card>
       </div>
 
       {r.failedJobs.length > 0 && (
-        <Card className="mt-5" title="24 小时内失败的队列任务" pad={false}>
+        <Card className="mt-5" title="Nieudane zadania z kolejek w 24 godz." pad={false}>
           <DataTable
             dense
             rows={r.failedJobs}
             rowKey={(j) => j.name}
             columns={[
-              { key: "n", label: "队列", render: (j) => <span className="font-mono text-[12.5px]">{j.name}</span> },
-              { key: "c", label: "失败", align: "right", render: (j) => num(j.failed) },
-              { key: "l", label: "最近", render: (j) => <Time at={j.last} /> },
-              { key: "o", label: "最近错误", render: (j) => <span className="line-clamp-2 font-mono text-[11.5px] text-ink-3">{j.last_output}</span> },
+              { key: "n", label: "Kolejka", render: (j) => <span className="font-mono text-[12.5px]">{j.name}</span> },
+              { key: "c", label: "Błędy", align: "right", render: (j) => num(j.failed) },
+              { key: "l", label: "Ostatnio", render: (j) => <Time at={j.last} /> },
+              { key: "o", label: "Ostatni błąd", render: (j) => <span className="line-clamp-2 font-mono text-[11.5px] text-ink-3">{j.last_output}</span> },
             ]}
           />
         </Card>
       )}
 
       <div className="mt-5 grid gap-5 xl:grid-cols-2">
-        <Card title="需要核对的付费回执" right={<span>{Object.entries(r.receipts.counts).map(([k, v]) => `${k} ${v}`).join(" · ")}</span>} pad={false}>
+        <Card title="Płatne pokwitowania do sprawdzenia" right={<span>{Object.entries(r.receipts.counts).map(([k, v]) => `${k} ${v}`).join(" · ")}</span>} pad={false}>
           <DataTable
             dense
             rows={r.receipts.issues}
             rowKey={(x) => x.id}
-            empty="没有待处理的回执"
+            empty="Brak pokwitowań do sprawdzenia"
             columns={[
-              { key: "id", label: "回执", render: (x) => <span className="num">#{x.id}</span> },
-              { key: "s", label: "状态", render: (x) => <Badge tone={x.status === "unknown" ? "bad" : "warn"}>{x.status}</Badge> },
-              { key: "w", label: "服务", render: (x) => <span className="whitespace-nowrap">{x.service}{x.model ? ` · ${x.model}` : ""}</span> },
-              { key: "p", label: "用途", render: (x) => (x.subject && /^[\w-]{10,}$/.test(x.subject) && x.purpose.includes("analy") ? <Link className="text-accent" to={`/admin/content/${x.subject}`}>{x.purpose}</Link> : x.purpose) },
-              { key: "e", label: "错误", render: (x) => <span className="line-clamp-2 text-[12px] text-ink-3" title={x.error ?? ""}>{x.error}</span> },
-              { key: "a", label: "", render: (x) => (x.status === "unknown" ? <Button size="sm" onClick={() => setReceipt(x)}>核对</Button> : null) },
+              { key: "id", label: "Pokwitowanie", render: (x) => <span className="num">#{x.id}</span> },
+              { key: "s", label: "Stan", render: (x) => <Badge tone={x.status === "unknown" ? "bad" : "warn"}>{x.status}</Badge> },
+              { key: "w", label: "Usługa", render: (x) => <span className="whitespace-nowrap">{x.service}{x.model ? ` · ${x.model}` : ""}</span> },
+              { key: "p", label: "Cel", render: (x) => (x.subject && /^[\w-]{10,}$/.test(x.subject) && x.purpose.includes("analy") ? <Link className="text-accent" to={`/admin/content/${x.subject}`}>{x.purpose}</Link> : x.purpose) },
+              { key: "e", label: "Błąd", render: (x) => <span className="line-clamp-2 text-[12px] text-ink-3" title={x.error ?? ""}>{x.error}</span> },
+              { key: "a", label: "", render: (x) => (x.status === "unknown" ? <Button size="sm" onClick={() => setReceipt(x)}>Sprawdź</Button> : null) },
             ]}
           />
         </Card>
-        <Card title="需要核实的投递" pad={false}>
+        <Card title="Wysyłki do sprawdzenia" pad={false}>
           <DataTable
             dense
             rows={r.deliveries}
             rowKey={(d) => d.id}
-            empty="没有待核实的投递"
+            empty="Brak wysyłek do sprawdzenia"
             columns={[
-              { key: "t", label: "目标", render: (d) => d.target_key },
-              { key: "s", label: "状态", render: (d) => <Badge tone={d.status === "unknown" ? "bad" : "warn"}>{d.status}</Badge> },
-              { key: "sub", label: "内容", render: (d) => (d.subject_kind === "selected" ? <Link className="text-accent" to={`/admin/content/${d.subject_id}`}>{d.subject_id}</Link> : `${d.subject_kind} ${d.subject_id}`) },
-              { key: "at", label: "时间", render: (d) => <Time at={d.updated_at} /> },
-              { key: "a", label: "", render: (d) => <Button size="sm" onClick={() => setDelivery(d)}>处理</Button> },
+              { key: "t", label: "Cel", render: (d) => d.target_key },
+              { key: "s", label: "Stan", render: (d) => <Badge tone={d.status === "unknown" ? "bad" : "warn"}>{d.status}</Badge> },
+              { key: "sub", label: "Treść", render: (d) => (d.subject_kind === "selected" ? <Link className="text-accent" to={`/admin/content/${d.subject_id}`}>{d.subject_id}</Link> : `${d.subject_kind} ${d.subject_id}`) },
+              { key: "at", label: "Czas", render: (d) => <Time at={d.updated_at} /> },
+              { key: "a", label: "", render: (d) => <Button size="sm" onClick={() => setDelivery(d)}>Obsłuż</Button> },
             ]}
           />
         </Card>
       </div>
 
       <div className="mt-5 grid gap-5 xl:grid-cols-2">
-        <Card title="延迟或失败的信源" right={<Link className="text-accent" to="/admin/sources?health=failing">全部失败信源</Link>} pad={false}>
+        <Card title="Opóźnione lub nieudane źródła" right={<Link className="text-accent" to="/admin/sources?health=failing">Wszystkie źródła z błędami</Link>} pad={false}>
           <DataTable
             dense
             rows={r.lagging}
             rowKey={(s) => s.id}
-            empty="信源都按时采集"
+            empty="Wszystkie źródła pobierane na czas"
             columns={[
-              { key: "n", label: "信源", render: (s) => <Link className="text-ink hover:text-accent" to={`/admin/sources/${encodeURIComponent(s.id)}`}>{s.name}</Link> },
-              { key: "h", label: "健康", render: (s) => <Badge tone={s.health === "failing" ? "bad" : s.health === "degraded" ? "warn" : "muted"}>{s.health}</Badge> },
-              { key: "ok", label: "上次成功", render: (s) => <Time at={s.last_ok_at} /> },
-              { key: "nx", label: "应抓", render: (s) => <Time at={s.next_fetch_at} /> },
-              { key: "e", label: "错误", render: (s) => <span className="line-clamp-1 text-[12px] text-ink-3" title={s.last_error ?? ""}>{s.last_error}</span> },
+              { key: "n", label: "Źródło", render: (s) => <Link className="text-ink hover:text-accent" to={`/admin/sources/${encodeURIComponent(s.id)}`}>{s.name}</Link> },
+              { key: "h", label: "Stan", render: (s) => <Badge tone={s.health === "failing" ? "bad" : s.health === "degraded" ? "warn" : "muted"}>{s.health}</Badge> },
+              { key: "ok", label: "Ostatni sukces", render: (s) => <Time at={s.last_ok_at} /> },
+              { key: "nx", label: "Planowane", render: (s) => <Time at={s.next_fetch_at} /> },
+              { key: "e", label: "Błąd", render: (s) => <span className="line-clamp-1 text-[12px] text-ink-3" title={s.last_error ?? ""}>{s.last_error}</span> },
             ]}
           />
         </Card>
         <Card
-          title="处理失败（30 天，按错误归类）"
+          title="Błędy przetwarzania (30 dni, według rodzaju)"
           right={
             <span className="flex items-center gap-3">
-              {r.retrying.count > 0 && <span>等待重试 {num(r.retrying.count)} 条 · 下一次 <Time at={r.retrying.next} /></span>}
-              {r.errors.length > 0 && <Button size="sm" onClick={() => setRequeue("")}>全部重新处理</Button>}
+              {r.retrying.count > 0 && <span>czeka na ponowienie: {num(r.retrying.count)} · następne <Time at={r.retrying.next} /></span>}
+              {r.errors.length > 0 && <Button size="sm" onClick={() => setRequeue("")}>Przetwórz wszystkie ponownie</Button>}
             </span>
           }
           pad={false}
@@ -191,13 +191,13 @@ export default function RunsAdmin({ loaderData }: Route.ComponentProps) {
             dense
             rows={r.errors}
             rowKey={(e) => e.error}
-            empty="没有处理失败"
+            empty="Brak błędów przetwarzania"
             columns={[
-              { key: "e", label: "错误", render: (e) => <span className="font-mono text-[11.5px] text-ink-2">{e.error}</span> },
-              { key: "n", label: "条数", align: "right", render: (e) => num(e.n) },
-              { key: "x", label: "示例", render: (e) => <Link className="text-accent" to={`/admin/content/${e.example}`}>查看</Link> },
-              { key: "l", label: "最近", render: (e) => <Time at={e.last} /> },
-              { key: "a", label: "", align: "right", render: (e) => <Button size="sm" onClick={() => setRequeue(e.error)}>重新处理</Button> },
+              { key: "e", label: "Błąd", render: (e) => <span className="font-mono text-[11.5px] text-ink-2">{e.error}</span> },
+              { key: "n", label: "Liczba", align: "right", render: (e) => num(e.n) },
+              { key: "x", label: "Przykład", render: (e) => <Link className="text-accent" to={`/admin/content/${e.example}`}>Zobacz</Link> },
+              { key: "l", label: "Ostatnio", render: (e) => <Time at={e.last} /> },
+              { key: "a", label: "", align: "right", render: (e) => <Button size="sm" onClick={() => setRequeue(e.error)}>Przetwórz ponownie</Button> },
             ]}
           />
         </Card>
@@ -206,49 +206,49 @@ export default function RunsAdmin({ loaderData }: Route.ComponentProps) {
       {PARTS.map(({ name, part: Part }) => (r.modules[name] != null ? <Part key={name} data={r.modules[name]} /> : null))}
 
       <div className="mt-5 grid gap-5 xl:grid-cols-2">
-        <Card title="任务时间线" pad={false}>
+        <Card title="Oś czasu zadań" pad={false}>
           <div className="max-h-[420px] overflow-y-auto">
             <DataTable
               dense
               rows={r.timeline}
               rowKey={(t) => t.id}
               columns={[
-                { key: "at", label: "开始", render: (t) => <span className="num whitespace-nowrap">{bj(t.started_at)}</span> },
-                { key: "j", label: "任务", render: (t) => <span className="font-mono text-[12px]">{t.job}</span> },
-                { key: "s", label: "结果", render: (t) => <Badge tone={t.status === "ok" ? "ok" : t.status === "failed" ? "bad" : "muted"} title={t.error ?? undefined}>{t.status ?? "运行中"}</Badge> },
-                { key: "d", label: "耗时", align: "right", render: (t) => duration(t.started_at, t.finished_at) },
+                { key: "at", label: "Start", render: (t) => <span className="num whitespace-nowrap">{bj(t.started_at)}</span> },
+                { key: "j", label: "Zadanie", render: (t) => <span className="font-mono text-[12px]">{t.job}</span> },
+                { key: "s", label: "Wynik", render: (t) => <Badge tone={t.status === "ok" ? "ok" : t.status === "failed" ? "bad" : "muted"} title={t.error ?? undefined}>{t.status ?? "w toku"}</Badge> },
+                { key: "d", label: "Czas trwania", align: "right", render: (t) => duration(t.started_at, t.finished_at) },
               ]}
             />
           </div>
         </Card>
-        <Card title="外部上报" pad={false}>
+        <Card title="Zewnętrzne zgłoszenia" pad={false}>
           {r.ingest.length ? (
             <DataTable
               dense
               rows={r.ingest}
               rowKey={(e) => `${e.client}-${e.created_at}`}
               columns={[
-                { key: "at", label: "时间", render: (e) => <Time at={e.created_at} /> },
-                { key: "c", label: "客户端", render: (e) => e.client },
-                { key: "k", label: "类型", render: (e) => e.kind },
-                { key: "s", label: "结果", render: (e) => <Badge tone={e.status === "ok" ? "ok" : e.status === "error" ? "bad" : "muted"} title={e.error ?? undefined}>{e.status}</Badge> },
-                { key: "x", label: "摘要", render: (e) => <Json value={e.summary} label="摘要" /> },
+                { key: "at", label: "Czas", render: (e) => <Time at={e.created_at} /> },
+                { key: "c", label: "Klient", render: (e) => e.client },
+                { key: "k", label: "Typ", render: (e) => e.kind },
+                { key: "s", label: "Wynik", render: (e) => <Badge tone={e.status === "ok" ? "ok" : e.status === "error" ? "bad" : "muted"} title={e.error ?? undefined}>{e.status}</Badge> },
+                { key: "x", label: "Podsumowanie", render: (e) => <Json value={e.summary} label="Podsumowanie" /> },
               ]}
             />
           ) : (
-            <Empty>{`还没有外部上报（${ingestClients().join("、")}）`}</Empty>
+            <Empty>{`Brak zewnętrznych zgłoszeń (${ingestClients().join(", ")})`}</Empty>
           )}
         </Card>
       </div>
 
       {r.processes.length > 0 && (
-        <Card className="mt-5" title="进程">
+        <Card className="mt-5" title="Procesy">
           <ul className="grid gap-2 text-[13px] sm:grid-cols-2 lg:grid-cols-3">
             {r.processes.map((p) => (
               <li key={p.role} className="flex items-center gap-2">
                 <Dot tone={p.alive ? "ok" : "bad"} />
                 <span className="font-medium">{p.role}</span>
-                <span className="text-ink-3">{p.host} · pid {p.pid} · {p.release} · 启动于 {bj(p.startedAt)}</span>
+                <span className="text-ink-3">{p.host} · pid {p.pid} · {p.release} · start {bj(p.startedAt)}</span>
               </li>
             ))}
           </ul>
@@ -257,44 +257,44 @@ export default function RunsAdmin({ loaderData }: Route.ComponentProps) {
 
       <ReasonDialog
         open={!!receipt}
-        title={`核对回执 #${receipt?.id ?? ""}`}
-        description="结果未知的请求不会自动重发。先到供应商控制台确认这次请求有没有计费，再放行：放行后下一次处理会重新发起调用。"
-        confirmLabel="记录并放行"
+        title={`Sprawdź pokwitowanie #${receipt?.id ?? ""}`}
+        description="Zapytania bez znanego wyniku nie są ponawiane automatycznie. Najpierw sprawdź w konsoli dostawcy, czy zostało naliczone, potem zwolnij: kolejne przetwarzanie wywoła model ponownie."
+        confirmLabel="Zapisz i zwolnij"
         busy={pending === "release"}
         onClose={() => setReceipt(null)}
-        onSubmit={async (note) => (await run("POST", `/api/admin/receipts/${receipt!.id}/release`, { billed: billed === "true", note }, { label: "release", success: "已放行" })) !== null}
+        onSubmit={async (note) => (await run("POST", `/api/admin/receipts/${receipt!.id}/release`, { billed: billed === "true", note }, { label: "release", success: "Zwolniono" })) !== null}
       >
-        <Field label="供应商是否计费">
+        <Field label="Czy dostawca naliczył opłatę">
           <Select value={billed} onChange={(e) => setBilled(e.target.value)}>
-            <option value="false">未计费（请求没有被接受）</option>
-            <option value="true">已计费（结果没有取回）</option>
+            <option value="false">Nie naliczono (zapytanie nie zostało przyjęte)</option>
+            <option value="true">Naliczono (wyniku nie odebrano)</option>
           </Select>
         </Field>
       </ReasonDialog>
       <ReasonDialog
         open={requeue !== null}
-        title={requeue ? "重新处理这一类失败" : "重新处理全部失败"}
-        description="这些文章会重新进入处理队列（正文、判断、发布）。模型调用会重新计费；供应商拒绝的内容可能再次失败。"
-        confirmLabel="重新处理"
+        title={requeue ? "Przetwórz ponownie ten rodzaj błędów" : "Przetwórz ponownie wszystkie błędy"}
+        description="Te teksty wrócą do kolejki przetwarzania (treść, ocena, publikacja). Wywołania modelu zużyją limit ponownie; treści odrzucone przez dostawcę mogą znów się nie udać."
+        confirmLabel="Przetwórz ponownie"
         busy={pending === "requeue"}
         onClose={() => setRequeue(null)}
-        onSubmit={async (reason) => (await run("POST", "/api/admin/processing/requeue", { group: requeue || null, reason }, { label: "requeue", success: "已重新排队" })) !== null}
+        onSubmit={async (reason) => (await run("POST", "/api/admin/processing/requeue", { group: requeue || null, reason }, { label: "requeue", success: "Dodano ponownie do kolejki" })) !== null}
       />
       <ReasonDialog
         open={!!delivery}
-        title="处理投递"
-        description="先到对应飞书群确认有没有收到。确认没收到再重发；开发环境不会真的发出。"
-        confirmLabel="确认"
+        title="Obsłuż wysyłkę"
+        description="Najpierw sprawdź w grupie docelowej, czy wiadomość dotarła. Wyślij ponownie tylko, gdy jej nie ma; środowisko dev nic nie wysyła."
+        confirmLabel="Potwierdź"
         danger={outcome === "resend"}
         busy={pending === "delivery"}
         onClose={() => setDelivery(null)}
-        onSubmit={async (note) => (await run("POST", `/api/admin/deliveries/${delivery!.id}/resolve`, { outcome, note }, { label: "delivery", success: "已处理" })) !== null}
+        onSubmit={async (note) => (await run("POST", `/api/admin/deliveries/${delivery!.id}/resolve`, { outcome, note }, { label: "delivery", success: "Obsłużono" })) !== null}
       >
-        <Field label="结果">
+        <Field label="Wynik">
           <Select value={outcome} onChange={(e) => setOutcome(e.target.value as typeof outcome)}>
-            <option value="sent">群里已收到，标记为已送达</option>
-            <option value="drop">不再发送</option>
-            <option value="resend">群里没有，重新发送</option>
+            <option value="sent">Dotarło, oznacz jako dostarczone</option>
+            <option value="drop">Nie wysyłaj więcej</option>
+            <option value="resend">Nie dotarło, wyślij ponownie</option>
           </Select>
         </Field>
       </ReasonDialog>

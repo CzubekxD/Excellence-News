@@ -2,7 +2,7 @@
 // state in settings and sends its own alerts.
 import { ALERTS } from "@aihot/site";
 import { sql } from "../db.ts";
-import { beijingStamp, formatAlert, formatRecovery, sendAlert, type Finding } from "../notify/feishu.ts";
+import { siteStamp, formatAlert, formatRecovery, sendAlert, type Finding } from "../notify/feishu.ts";
 
 // The process manager restarts a crashed worker within seconds and a deploy restarts it on purpose;
 // half an hour without a heartbeat means those did not help.
@@ -11,10 +11,10 @@ const WORKER_STALE_MS = 30 * 60_000;
 const WORKER_DOWN: Finding = {
   key: "worker",
   level: "now",
-  title: "后台处理服务停了，网站不会出现新内容",
-  impact: "新内容的采集、处理、推送和日报全部暂停，网站停在旧内容上",
-  heals: "系统自动重启没有成功",
-  action: "转给 AI 立即处理",
+  title: "Usługa przetwarzania w tle stoi, w serwisie nie pojawią się nowe treści",
+  impact: "wstrzymane są pobieranie, przetwarzanie, powiadomienia i dziennik; serwis pokazuje stare treści",
+  heals: "automatyczny restart się nie udał",
+  action: "sprawdź pilnie",
 };
 
 /**
@@ -33,7 +33,7 @@ export async function checkWorkerHeartbeat(): Promise<void> {
     if (prior?.value.state === state) return;
     // A first check that finds the worker running only records it.
     const msg = stale
-      ? formatAlert({ ...WORKER_DOWN, detail: `worker 心跳停在 ${beijingStamp(hb.updated_at)}；${ALERTS.workerLogs}` }, hb.updated_at, Date.now())
+      ? formatAlert({ ...WORKER_DOWN, detail: `ostatni sygnał workera ${siteStamp(hb.updated_at)}; ${ALERTS.workerLogs}` }, hb.updated_at, Date.now())
       : prior && formatRecovery(WORKER_DOWN.title, new Date(prior.value.since), Date.now());
     if (msg) await sendAlert(msg.title, msg.lines);
     // "since" of a down state is the last heartbeat, so the recovery can say how long it lasted.

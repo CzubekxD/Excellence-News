@@ -1,4 +1,4 @@
-import { REPORTS, SITE } from "@aihot/site";
+import { plural, REPORTS, SITE } from "@aihot/site";
 import { Link, redirect, useLoaderData } from "react-router";
 import type { Route } from "./+types/topic";
 import type { TopicPage } from "@aihot/contracts/site";
@@ -8,7 +8,7 @@ import { DayList, Pagination } from "../features/feed/DayList";
 import { BrandMark } from "../components/BrandMark";
 import { EmptyState } from "../components/ui/Page";
 import { IconArrowLeft } from "../components/icons";
-import { beijingDate } from "@aihot/contracts/time";
+import { siteDate } from "@aihot/contracts/time";
 import { monthDay, monthDayTime } from "../lib/format";
 import { PhoneBar } from "../components/shell/PhoneBar";
 import type { Screen } from "../components/shell/screens";
@@ -47,23 +47,23 @@ function partsOf(data: TopicPage): Part[] {
 function description(data: TopicPage, parts: Part[]): string {
   const { topic } = data;
   let text = topic.definition;
-  const news = parts.flatMap((p) => p.news(p.data)).slice(0, 2).map((title) => title.replace(/[。.]$/u, "")).join("；");
-  if (news && topic.latest) text = `${monthDay(beijingDate(topic.latest.at))}更新：${news}。${topic.definition}`;
+  const news = parts.flatMap((p) => p.news(p.data)).slice(0, 2).map((title) => title.replace(/[。.]$/u, "")).join("; ");
+  if (news && topic.latest) text = `Aktualizacja ${monthDay(siteDate(topic.latest.at))}: ${news}. ${topic.definition}`;
   return text.length > 150 ? `${text.slice(0, 149)}…` : text;
 }
 
 export function meta({ loaderData }: Route.MetaArgs) {
-  if (!loaderData) return [{ title: titled("主题不存在") }, { name: "robots", content: "noindex" }];
+  if (!loaderData) return [{ title: titled("Temat nie istnieje") }, { name: "robots", content: "noindex" }];
   const data = loaderData.data;
   const { topic, page } = data;
   const parts = partsOf(data);
   const path = page > 1 ? `/topics/${topic.slug}/page/${page}` : `/topics/${topic.slug}`;
-  const text = page > 1 ? `${topic.name}的精选归档第 ${page} 页。${topic.definition}` : description(data, parts);
-  const crumbs = breadcrumbLd([{ name: SITE.name, path: "/" }, { name: "主题", path: "/topics" }, { name: topic.name, path: `/topics/${topic.slug}` }]);
+  const text = page > 1 ? `${topic.name}: archiwum wyboru, strona ${page}. ${topic.definition}` : description(data, parts);
+  const crumbs = breadcrumbLd([{ name: SITE.name, path: "/" }, { name: "Tematy", path: "/topics" }, { name: topic.name, path: `/topics/${topic.slug}` }]);
   return pageMeta({
     title: page > 1
-      ? `${topic.name} 精选 · 第 ${page} 页`
-      : `${topic.name} 最新动态${parts.length ? `与${parts.map((p) => p.name).join("、")}` : ""}`,
+      ? `${topic.name}: wybór · strona ${page}`
+      : `${topic.name}: najnowsze${parts.length ? ` oraz ${parts.map((p) => p.name).join(", ")}` : ""}`,
     description: text,
     path,
     image: `/og/topics/${topic.slug}.png`,
@@ -73,7 +73,7 @@ export function meta({ loaderData }: Route.MetaArgs) {
       : [
           topicLd({
             path,
-            name: `${topic.name} 最新动态`,
+            name: `${topic.name}: najnowsze`,
             description: text,
             dateModified: topic.latest?.at ?? null,
             lists: parts.map((p) => ({ name: p.name, entries: p.entries(p.data) })),
@@ -92,9 +92,9 @@ export default function TopicRoute() {
   const last = first + items.length - 1;
   return (
     <div className="pb-6">
-      <PhoneBar back={{ to: "/topics", label: "全部主题" }} title={topic.name} />
+      <PhoneBar back={{ to: "/topics", label: "Wszystkie tematy" }} title={topic.name} />
       <Link to="/topics" className="hidden items-center gap-1.5 py-2 text-[13px] text-ink-3 transition-colors hover:text-accent lg:inline-flex">
-        <IconArrowLeft size={14} /> 返回全部主题
+        <IconArrowLeft size={14} /> Wszystkie tematy
       </Link>
       <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2 pb-5 pt-3 lg:pt-1">
         <div className="min-w-0 max-w-[760px]">
@@ -103,26 +103,26 @@ export default function TopicRoute() {
             {topic.brand && <BrandMark brand={topic.brand} size={34} />}
             <span>
               {topic.name}{" "}
-              <span className="whitespace-nowrap font-semibold text-ink-4">最新动态</span>
+              <span className="whitespace-nowrap font-semibold text-ink-4">Najnowsze</span>
             </span>
           </h1>
           <p className="mt-1.5 text-pretty text-[13.5px] leading-relaxed text-ink-3">{topic.definition}</p>
           <p className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1 text-[12.5px] text-ink-4">
             <span>
-              <span className="num font-semibold text-ink-2">{topic.total.toLocaleString("zh-CN")}</span>{` ${REPORTS.metricUnits.selectedCount}`}
+              <span className="num font-semibold text-ink-2">{topic.total.toLocaleString("pl-PL")}</span>{` ${plural(topic.total, REPORTS.metricUnits.selectedCount)}`}
             </span>
             <span>
-              近 30 天 <span className="num font-semibold text-ink-2">{topic.recent.toLocaleString("zh-CN")}</span> 条
+              w 30 dni: <span className="num font-semibold text-ink-2">{topic.recent.toLocaleString("pl-PL")}</span>
             </span>
             <span>
-              共收录 <span className="num font-semibold text-ink-2">{topic.poolTotal.toLocaleString("zh-CN")}</span> 条
+              razem w zbiorze: <span className="num font-semibold text-ink-2">{topic.poolTotal.toLocaleString("pl-PL")}</span>
             </span>
           </p>
         </div>
         <div className="flex items-center gap-4 text-[12px] text-ink-4">
           {topic.latest && (
             <span>
-              <time dateTime={topic.latest.at} className="num">{monthDayTime(topic.latest.at)}</time> 更新
+              aktualizacja <time dateTime={topic.latest.at} className="num">{monthDayTime(topic.latest.at)}</time>
             </span>
           )}
         </div>
@@ -134,13 +134,13 @@ export default function TopicRoute() {
         </div>
       ))}
 
-      <h2 className="sr-only">{page === 1 ? `${topic.name}的精选` : `精选归档 · 第 ${page} 页`}</h2>
+      <h2 className="sr-only">{page === 1 ? `${topic.name}: wybór` : `Archiwum wyboru · strona ${page}`}</h2>
       {items.length === 0 ? (
         <div className="lg:card">
-          <EmptyState title="这个主题暂时还没有精选内容" />
+          <EmptyState title="Ten temat nie ma jeszcze wybranych treści" />
         </div>
       ) : (
-        <DayList items={items} headerAside={<span className="num whitespace-nowrap">第 {first}–{last} 条<span className="hidden sm:inline"> · 共 {topic.total.toLocaleString("zh-CN")} 条</span></span>} />
+        <DayList items={items} headerAside={<span className="num whitespace-nowrap">pozycje {first}–{last}<span className="hidden sm:inline"> z {topic.total.toLocaleString("pl-PL")}</span></span>} />
       )}
       <Pagination page={page} pageCount={pageCount} href={href} />
     </div>
