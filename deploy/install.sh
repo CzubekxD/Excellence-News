@@ -18,9 +18,11 @@ PORT="${PORT:-3000}"
 
 say() { printf '\n\033[1;36m==> %s\033[0m\n' "$*"; }
 fail() { printf '\n\033[1;31mBłąd: %s\033[0m\n' "$*" >&2; exit 1; }
-# Pytania czytają z terminala, także gdy skrypt przyszedł przez potok.
-ask() { local prompt=$1 default=${2:-} answer; read -r -p "$prompt" answer </dev/tty || true; printf '%s' "${answer:-$default}"; }
-ask_secret() { local prompt=$1 answer; read -r -s -p "$prompt" answer </dev/tty || true; printf '\n' >/dev/tty; printf '%s' "$answer"; }
+# Pytania czytają z terminala, także gdy skrypt przyszedł przez potok. Odpowiedź traci klawisze sterujące
+# (np. strzałki wciśnięte w ukrytym polu dopisują ^[[D) i spacje: adres i klucz ich nie zawierają.
+clean() { printf '%s' "$1" | sed $'s/\e\\[[0-9;]*[A-Za-z~]//g' | tr -d '[:cntrl:][:space:]'; }
+ask() { local prompt=$1 default=${2:-} answer; read -r -e -p "$prompt" answer </dev/tty || true; answer=$(clean "$answer"); printf '%s' "${answer:-$default}"; }
+ask_secret() { local prompt=$1 answer; read -r -s -p "$prompt" answer </dev/tty || true; printf '\n' >/dev/tty; clean "$answer"; }
 
 # Ustawia KLUCZ=wartość w .env: zamienia istniejącą linię (także zakomentowaną wzorcową) albo dopisuje nową.
 set_env() {
