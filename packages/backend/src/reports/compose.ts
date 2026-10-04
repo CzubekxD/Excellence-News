@@ -82,7 +82,8 @@ export async function composeDaily(date: string, reason?: string): Promise<{ key
   const previous = await savedReport("daily", date);
   if (previous && reason === undefined) return { key: date, entries: previous.entries };
   const end = siteAt(date, EDITION_TIMES.daily);
-  const start = new Date(end.getTime() - 86400000);
+  // The previous edition, not 24 hours: the day the clocks change is 23 or 25 hours long.
+  const start = siteAt(addDays(date, -1), EDITION_TIMES.daily);
   const edition = await dailyEdition(date, start, end);
   // An issue with nothing in it is a failure upstream, not a report: the run fails and is caught up later.
   if (edition.entries.length === 0) throw new Error(`daily ${date}: no selected items in its window`);

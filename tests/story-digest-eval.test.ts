@@ -131,7 +131,7 @@ test("a case exported from an event reaches the model exactly as the site's own 
 
     assert.equal((await composeStoryDigest(g.id)).updated, true);
     const site = bodies.at(-1)!;
-    assert.ok(step === "first digest" ? site.includes("【新】") : site.includes("经过更正") && site.includes("已经更正的摘要"), step);
+    assert.ok(step === "first digest" ? site.includes("【NOWE】") : site.includes("zostały poprawione") && site.includes("已经更正的摘要"), step);
     const evaluated = await run(["--cases", snapshot, "--out-dir", dir], provider.url);
     assert.equal(evaluated.code, 0, evaluated.stderr);
     assert.equal(bodies.at(-1), site, `${step}: model, system prompt, input and sampling are the site's, byte for byte`);
@@ -193,7 +193,7 @@ test("a candidate prompt runs beside the site's on the same input, each call wit
     const [system, user] = [messages[0]!.content, messages[1]!.content];
     bodies.push({ system, user });
     const live = system === DIGEST_SYSTEM;
-    const title = /事件当前标题：(.+)/.exec(user)![1]!;
+    const title = /Obecny tytuł wydarzenia: (.+)/.exec(user)![1]!;
     if (!live && title.includes("二号") && failCandidateTwo) {
       failCandidateTwo = false;
       return { choices: [{ message: { content: "not JSON" } }], usage: { prompt_tokens: 7, completion_tokens: 1 } };
@@ -321,13 +321,13 @@ test("hand-written cases parse strictly and keep the site's two input forms", ()
   assert.deepEqual(toDigestInput(parseDigestEvalJsonl(JSON.stringify(sameMoment))[0]!).reports.map((report) => report.id), ["z", "A"],
     "reports from the same moment keep the snapshot's order, which is the database's");
   const update = buildStoryDigestInput(incremental.story, incremental.reports, incremental);
-  assert.match(update, /上一版综述：上一版综述/);
-  assert.match(update, /【新】报道 new｜事实 2/);
-  assert.doesNotMatch(update, /【新】报道 old/);
+  assert.match(update, /Poprzednia wersja zarysu: 上一版综述/);
+  assert.match(update, /【NOWE】Relacja new \| fakt 2/);
+  assert.doesNotMatch(update, /【NOWE】Relacja old/);
   assert.match(update, /仍属于有限测试/);
 
   const corrected = toDigestInput(parseDigestEvalJsonl(JSON.stringify({ ...value, inputMode: "corrected" }))[0]!);
   const rewrite = buildStoryDigestInput(corrected.story, corrected.reports, corrected);
-  assert.match(rewrite, /经过更正/);
+  assert.match(rewrite, /zostały poprawione/);
   assert.doesNotMatch(rewrite, /上一版综述|【新】/);
 });

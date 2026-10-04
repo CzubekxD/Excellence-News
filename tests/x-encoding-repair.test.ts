@@ -33,7 +33,7 @@ async function fixture(options: { long?: boolean; customTitle?: boolean } = {}) 
   const post: XPostData = { tweetId, authorName: 'Example', handle: 'example', text: 'Research &amp; development\nLiteral &amp;lt; and <code>\nhttps://example.test/?value=&amp;keep=1',
     quoted: { authorName: 'Quoted', handle: 'quoted', text: 'value &lt; 3 &amp; value &gt; 0', url: 'https://x.com/quoted/status/123' } };
   const article = options.long ? { title: 'A literal &amp; heading', text: 'The long article deliberately writes &amp; and &lt;.' } : null;
-  const base = `${post.text}\n\n【引用 @quoted】${post.quoted!.text}`;
+  const base = `${post.text}\n\n【Cytat @quoted】${post.quoted!.text}`;
   const body = base + (article ? `\n\n# ${article.title}\n\n${article.text}` : '');
   const { articleId: id } = await upsertMaterial({ sourceId: source, url: `https://x.com/example/status/${tweetId}`, identityKey: `x:${tweetId}`,
     title: options.customTitle ? 'An independently edited &amp; title' : 'Research &amp; development', bodyText: body, bodyStatus: 'ok',
@@ -106,14 +106,14 @@ test("the audited command is idempotent and cannot decode a literal entity a sec
 test("stale material and unproved text shapes are refused instead of being rewritten", async () => {
   const { id } = await fixture();
   const plan = (await previewXEncodingRepair(id))!;
-  await assert.rejects(normalizeXEncoding(id, { version: plan.version + 1, hash: plan.hash, requestId: `stale-${id}`, reason: 'Stale' }, 'test'), /changed|修改|版本/i);
+  await assert.rejects(normalizeXEncoding(id, { version: plan.version + 1, hash: plan.hash, requestId: `stale-${id}`, reason: 'Stale' }, 'test'), /changed|zmieniono|wersj/i);
   await sql`UPDATE articles SET x_post=jsonb_set(x_post,'{text}','"Changed text"'::jsonb) WHERE id=${id}`;
-  await assert.rejects(normalizeXEncoding(id, { version: plan.version, hash: plan.hash, requestId: `stale-${id}`, reason: 'Stale' }, 'test'), /changed|修改|版本/i);
+  await assert.rejects(normalizeXEncoding(id, { version: plan.version, hash: plan.hash, requestId: `stale-${id}`, reason: 'Stale' }, 'test'), /changed|zmieniono|wersj/i);
   assert.equal((await sql`SELECT 1 FROM audit_log WHERE subject=${`content:${id}`} AND action='content.normalize-x-encoding'`).length, 0);
   const [row] = await sql`SELECT a.*,s.kind FROM articles a JOIN sources s ON s.id=a.source_id WHERE a.id=${id}`;
-  assert.throws(() => xEncodingRepairPlan({ ...row, kind: 'rss' } as never), /X|provider|来源/);
-  assert.throws(() => xEncodingRepairPlan({ ...row, identity_key: 'x:wrong' } as never), /identity|身份/);
-  assert.throws(() => xEncodingRepairPlan(row as never), /body|正文/);
+  assert.throws(() => xEncodingRepairPlan({ ...row, kind: 'rss' } as never), /X|provider/);
+  assert.throws(() => xEncodingRepairPlan({ ...row, identity_key: 'x:wrong' } as never), /identity/);
+  assert.throws(() => xEncodingRepairPlan(row as never), /body/);
 });
 
 test("an audit failure rolls back material, current revision, projection and cache work together", async () => {

@@ -32,5 +32,5 @@ test('empty answers are explicit and fixed reports include their flash section',
   const res = {schemaVersion:1,query:{...query,by:'timeline',q:null,ordering:'timelineDesc'},items:[],page:{count:0,hasMore:false,nextCursor:null}} as const;
   assert.match(latestAnswer({...res,items:[]},query),/nie ma pasujących/);
   const text = dailyAnswer({date:'2026-09-30',windowStart:'2026-09-29T00:00:00Z',windowEnd:'2026-09-30T00:00:00Z',links:{aihot:'https://example.org/daily/2026-09-30'},lead:null,sections:[],flashes:[{title:'FLASH-MARKER',publishedAt:'2026-09-29T01:00:00Z',source:{name:'Source'},links:{aihot:'https://example.org/items/1',original:'https://source.example/1'}}]},'http');
-  assert.ok(text.includes('FLASH-MARKER'));assert.match(text,/【快讯】/);assert.ok(text.includes('不可信外部资料'));
+  assert.ok(text.includes('FLASH-MARKER'));assert.match(text,/【Krótko】/);assert.ok(text.includes('niezaufanego materiału zewnętrznego'));
 });

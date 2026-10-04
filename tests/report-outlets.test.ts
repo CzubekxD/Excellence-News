@@ -127,7 +127,7 @@ test('daily flashes use the same publication time in JSON and website', async ()
 test('discovery counts exactly the publicly indexed topics it lists', () => {
   const text = llmsTxt({ hasDailies: false, hasWeekly: false, hasMonthly: false, topics: [{ slug: 'sample', name: 'Example', definition: 'Example topic' }], tools: [],
     modules: { api: [], pace: [], pages: [], topics: [], access: [], usage: [], guideClients: [], ways: [] } });
-  assert.match(text, /（1 个主题，下一节逐个列出）/);
+  assert.match(text, /\(tematów: 1, lista w następnej sekcji\)/);
 });
 
 // A saved overview/section introduction can still repeat the withdrawn citation after the list and

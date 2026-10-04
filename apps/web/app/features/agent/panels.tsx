@@ -6,7 +6,7 @@ import { Link } from "react-router";
 import { PUBLIC_INTERFACE_VERSION } from "@aihot/contracts/http-policy";
 import { MCP_TOOL_NAMES as T, MCP_TOOLS } from "@aihot/contracts/mcp";
 import { feedCategoryLabel, PUBLIC_API_CATEGORY_KEYS } from "@aihot/contracts/taxonomy";
-import { ACCESS, AGENT, EDITION_WHEN, POLICY, REPORTS, SITE } from "@aihot/site";
+import { ACCESS, AGENT, EDITION_WHEN, POLICY, REPORTS, SITE, count } from "@aihot/site";
 import { CodeBlock, CopyButton } from "./CodeBlock";
 import { PillTabs } from "../../components/ui/Tabs";
 import type { AgentPanelProps } from "../../modules";
@@ -37,7 +37,7 @@ export function McpPanel(props: AgentPanelProps) {
   const [client, setClient] = useState<string>("claude");
   return (
     <>
-      <PanelHead label={`MCP · ${V}`} title={`Jeden adres i agent ma ${mcpToolCount()} nowych narzędzi`}>
+      <PanelHead label={`MCP · ${V}`} title={`Jeden adres, a agent dostaje ${count(mcpToolCount(), ["narzędzie", "narzędzia", "narzędzi"])}`}>
         Standardowy Streamable HTTP, anonimowo i tylko do odczytu, bez tokenu i bez dostępu do twoich logowań. Dla klientów obsługujących zdalne MCP, takich jak Claude Desktop czy Cursor.
       </PanelHead>
       <Steps>

@@ -1,7 +1,7 @@
 // Selected news timeline: one card per fact, or per standalone article. Only duplicate reports
 // fold together. Each fact stays at its first appearance; other news in its story never moves it.
 import type { GroupInfo, TimelineCard, TimelineFilters, TimelineResponse } from "@aihot/contracts/site";
-import { siteDate, siteMidnight } from "@aihot/contracts/time";
+import { addDays, siteDate, siteMidnight } from "@aihot/contracts/time";
 import { sql } from "../db.ts";
 import { cachedByKey } from "../lib/cache.ts";
 import { pickRepresentative, REPRESENTATIVE_COLUMNS, type RepresentativeRow } from "./representative.ts";
@@ -78,8 +78,8 @@ export function countTimelineDays(grouped: readonly { anchor: number }[], days: 
   };
   const counts: Record<string, number> = {};
   for (const day of days) {
-    const start = siteMidnight(day).getTime();
-    const count = firstBelow(start) - firstBelow(start + 86_400_000);
+    // Days of the clock change are 23 or 25 hours long: the day ends at the next midnight.
+    const count = firstBelow(siteMidnight(day).getTime()) - firstBelow(siteMidnight(addDays(day, 1)).getTime());
     if (count) counts[day] = count;
   }
   return counts;

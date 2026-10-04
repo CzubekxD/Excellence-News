@@ -8,6 +8,7 @@ import http from "node:http";
 import { siteAt } from "@aihot/contracts/time";
 import { EDITION_TIMES } from "@aihot/site";
 import { DEFAULTS, PRESETS } from "@aihot/site/models";
+import { FIXTURES_MODULE } from "./model-fixtures.ts";
 
 const database = new URL(process.env.DATABASE_URL ?? "postgres://unset/unset").pathname.slice(1);
 if (!/_(test|ci)$/.test(database)) {
@@ -22,42 +23,9 @@ process.env.LOG_LEVEL ??= "error";
 // Paid providers are local stubs in these tests: calls and collection may run (the valves default off).
 process.env.MODEL_CALLS_ENABLED ??= "true";
 process.env.COLLECT_ENABLED ??= "true";
-// The tests were written against named model presets, one per step. They are test fixtures, added to
-// the site's own presets here (site/models.ts names this site's providers, not these).
-const FIXTURE_PRESETS: typeof PRESETS = {
-  "glm-5.3-flash": {
-    service: "zhipu", model: "glm-5.3-flash", baseUrlEnv: "ZHIPU_BASE_URL", apiKeyEnv: "ZHIPU_API_KEY",
-    extra: { thinking: { type: "enabled" }, reasoning_effort: "low" }, jsonMode: true,
-  },
-  "glm-5.3-flash-selection": {
-    service: "zhipu", model: "glm-5.3-flash", baseUrlEnv: "ZHIPU_BASE_URL", apiKeyEnv: "ZHIPU_API_KEY",
-    extra: { thinking: { type: "enabled", clear_thinking: false }, reasoning_effort: "high", top_p: 0.95 }, jsonMode: true,
-  },
-  "deepseek-flash": {
-    service: "deepseek", model: "deepseek-flash", baseUrlEnv: "DEEPSEEK_BASE_URL", apiKeyEnv: "DEEPSEEK_API_KEY",
-    extra: { thinking: { type: "disabled" } }, jsonMode: true,
-  },
-  "deepseek-flash-think": {
-    service: "deepseek", model: "deepseek-flash", baseUrlEnv: "DEEPSEEK_BASE_URL", apiKeyEnv: "DEEPSEEK_API_KEY", reasoningTokens: 4000, jsonMode: true,
-  },
-  "qwen3.7-flash": {
-    service: "dashscope", model: "qwen3.7-flash", baseUrlEnv: "DASHSCOPE_BASE_URL", apiKeyEnv: "DASHSCOPE_API_KEY",
-    extra: { enable_thinking: false }, jsonMode: true,
-  },
-  "qwen3.8-flash": {
-    service: "dashscope", model: "qwen3.8-flash", baseUrlEnv: "DASHSCOPE_BASE_URL", apiKeyEnv: "DASHSCOPE_API_KEY",
-    extra: { enable_thinking: false }, jsonMode: true,
-  },
-  "mimo-v2.6-flash": {
-    service: "mimo", model: "mimo-v2.6-flash", baseUrlEnv: "XIAOMI_MIMO_BASE_URL", apiKeyEnv: "XIAOMI_MIMO_API_KEY",
-    extra: { thinking: { type: "disabled" } }, jsonMode: true,
-  },
-  "qwen3-vl-flash": {
-    service: "dashscope", model: "qwen3-vl-flash", baseUrlEnv: "DASHSCOPE_BASE_URL", apiKeyEnv: "DASHSCOPE_API_KEY",
-    extra: { enable_thinking: false }, jsonMode: false, vision: true,
-  },
-};
-for (const [name, preset] of Object.entries(FIXTURE_PRESETS)) PRESETS[name] ??= preset;
+// Child processes the tests start (shutdown tests, evaluation scripts) inherit the variables below and need the same presets.
+if (!process.env.NODE_OPTIONS?.includes(FIXTURES_MODULE)) process.env.NODE_OPTIONS = `${process.env.NODE_OPTIONS ?? ""} --import ${FIXTURES_MODULE}`.trim();
+// The tests were written against named model presets, one per step (tests/model-fixtures.ts).
 // Each provider is pointed at a local stub by the test that needs it). A step the site leaves on the `default` model gets its
 // preset here; tests/default-model.test.ts covers the default.
 const STEP_MODELS: Record<string, [env: string, model: string]> = {

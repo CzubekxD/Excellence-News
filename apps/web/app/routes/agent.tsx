@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useLoaderData, useNavigate, useSearchParams } from "react-router";
 import type { Route } from "./+types/agent";
 import { PUBLIC_INTERFACE_VERSION } from "@aihot/contracts/http-policy";
-import { SITE } from "@aihot/site";
+import { SITE, count } from "@aihot/site";
 import { apiGet, edgeTtl } from "../lib/api.server";
 import { listPath, pageMeta, siteUrl } from "../lib/seo";
 import { IconArrowUpRight, IconChevronRight, IconCode, IconPlug, IconRss } from "../components/icons";
@@ -25,7 +25,7 @@ const V = PUBLIC_INTERFACE_VERSION;
 /** The ways in, the modules' first. The chooser's cards are the tabs: `?tab=` (the first is the default and not written). */
 const TRACKS: AgentTrack[] = [
   ...AGENT_PARTS.flatMap((p) => p.tracks ?? []),
-  { key: "mcp", name: "MCP", short: "MCP", pitch: `Jeden adres i ${mcpToolCount()} nowych narzędzi`, fit: "Claude Desktop, Cursor i inni klienci zdalnego MCP", icon: IconPlug, Panel: McpPanel },
+  { key: "mcp", name: "MCP", short: "MCP", pitch: `Jeden adres, ${count(mcpToolCount(), ["narzędzie", "narzędzia", "narzędzi"])}`, fit: "Claude Desktop, Cursor i inni klienci zdalnego MCP", icon: IconPlug, Panel: McpPanel },
   { key: "rss", name: "RSS", short: "RSS", pitch: "Skopiuj adres do czytnika", fit: "Feedly, Inoreader, Reeder, n8n", icon: IconRss, Panel: RssPanel },
   { key: "api", name: "REST API", short: "API", pitch: "Anonimowe GET dla własnych programów", fit: "skrypty, boty, pulpity", icon: IconCode, Panel: ApiPanel, anchors: ["agent-api-recovery"] },
 ];

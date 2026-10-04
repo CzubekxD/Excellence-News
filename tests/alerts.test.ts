@@ -115,8 +115,8 @@ test("selected identity delays show reader impact, recovery state and the affect
     await make("group-alert-failed", 20, "failed");
     let warning = await finding();
     assert.equal(warning?.level, "now");
-    assert.match(warning!.impact!, /1 条.*精选/);
-    assert.match(warning!.heals!, /人工|处理后/);
+    assert.match(warning!.impact!, /warunki wyboru.*: 1(?!\d)/);
+    assert.match(warning!.heals!, /ręcznej obsługi/);
     assert.match(warning!.detail!, /group-alert-failed/);
     const runs = await runsOverview();
     assert.equal(runs.grouping.waiting, 3, "the runs page includes normal waits but no false candidates");
@@ -127,12 +127,12 @@ test("selected identity delays show reader impact, recovery state and the affect
       VALUES('group-alert-receipt','deepseek','event_identity','article:group-alert-failed','unknown') RETURNING id`;
     await sql`UPDATE articles SET grouping_receipt_id=${receipt!.id} WHERE id='group-alert-failed'`;
     warning = await finding();
-    assert.match(warning!.heals!, /自动/);
-    assert.match(warning!.heals!, /30 分钟/);
+    assert.match(warning!.heals!, /automatyczne/);
+    assert.match(warning!.heals!, /30 minutach/);
     await sql`INSERT INTO receipt_attempts(receipt_id,service,attempt,status,error)
-      VALUES(${receipt!.id},'deepseek',1,'failed','自动放行：结果未知超过 30 分钟，未核对是否计费')`;
+      VALUES(${receipt!.id},'deepseek',1,'failed','automatyczne zwolnienie: wynik nieznany ponad 30 minut, rozliczenia nie sprawdzono')`;
     warning = await finding();
-    assert.match(warning!.heals!, /人工|处理后/);
+    assert.match(warning!.heals!, /ręcznej obsługi/);
     assert.match(warning!.detail!, new RegExp(`#${receipt!.id}`));
 
     await sql`UPDATE articles SET grouping_status='complete',grouped_at=now(),grouping_receipt_id=NULL WHERE id='group-alert-failed'`;
@@ -159,8 +159,8 @@ test("the ops digest does not describe unknown paid work as harmless or already 
     console.log = (value: unknown) => { lines.push(String(value)); };
     await sendDigest();
     const message = lines.join("\n");
-    assert.match(message, /结果.*未知|结果.*确认/);
-    assert.doesNotMatch(message, /以下事项不影响读者|自动重试过一次/);
+    assert.match(message, /niepotwierdzonym wynikiem|wynik.*nieznany/);
+    assert.doesNotMatch(message, /nie wpływają na czytelników|ponowiono automatycznie/);
   } finally {
     console.log = log;
     if (enabled === undefined) delete process.env.FEISHU_INTERNAL_ENABLED;

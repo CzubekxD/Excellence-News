@@ -1,11 +1,11 @@
-## 解决什么问题
+## Co rozwiązuje
 
-<!-- 描述具体问题、改动后的行为；有关联 Issue 时写 Fixes #编号 或 Refs #编号。 -->
+<!-- Opisz problem i zachowanie po zmianie; powiązane zgłoszenie: Fixes #numer albo Refs #numer. -->
 
-## 如何验证
+## Jak sprawdzono
 
-<!-- 写明实际执行的检查和结果；未运行的检查说明原因。页面改动附截图。 -->
+<!-- Uruchomione sprawdzenia i ich wyniki; czego nie uruchomiono i dlaczego. Przy zmianach strony dołącz zrzuty ekranu. -->
 
-## 兼容与使用影响
+## Wpływ na wdrożenie
 
-<!-- 是否涉及配置、数据库迁移、公开 API 或升级步骤？没有可写“无”。 -->
+<!-- Czy zmienia konfigurację, migracje bazy, publiczne API albo kroki aktualizacji? Jeśli nie, wpisz „brak”. -->

@@ -23,14 +23,14 @@ const X_SOURCE = `test-analyze-x-${T}`;
 
 interface Req { step: AnalysisStep; marker: string; user: string }
 const requests: Req[] = [];
-const MARKERS = ["CLEAR", "RESCUE", "LOW", "OFFTOPIC", "BARE", "VAGUE", "THIN", "SENSITIVE", "推文"];
+const MARKERS = ["CLEAR", "RESCUE", "LOW", "OFFTOPIC", "BARE", "VAGUE", "THIN", "SENSITIVE", "WPIS"];
 // The scores sit a few points around the pack's T1 threshold and understand floor, so each case means
 // the same after a site recalibrates them: selected when the two add up to 2 × T1, written like a
 // selected item when they add up to more than 2 × FLOOR, translated otherwise.
 const T1 = tierThreshold("T1")!;
 const FLOOR = UNDERSTAND_FLOOR;
 const scoreAnswers: Record<string, number[]> = {
-  CLEAR: [T1 + 3, T1 - 1], RESCUE: [FLOOR + 1, FLOOR], LOW: [FLOOR, FLOOR - 1], THIN: [T1, T1], SENSITIVE: [T1, T1], 推文: [FLOOR, FLOOR],
+  CLEAR: [T1 + 3, T1 - 1], RESCUE: [FLOOR + 1, FLOOR], LOW: [FLOOR, FLOOR - 1], THIN: [T1, T1], SENSITIVE: [T1, T1], WPIS: [FLOOR, FLOOR],
   BARE: [FLOOR - 2, FLOOR - 4], VAGUE: [T1, T1 + 2],
 };
 
@@ -47,9 +47,9 @@ const provider = await stub((_hit, req) => {
   if (step === "score") return answer({ attentionScore: scoreAnswers[marker]!.shift() });
   if (step === "understand") {
     if (marker === "SENSITIVE") return new Reply(400, { contentFilter: [{ level: 1, role: "user" }], error: { code: "1301", message: "系统检测到输入或生成内容可能包含不安全或敏感内容" } });
-    return answer({ itemType: "case_study", authorRole: "principal", tags: ["模型发布", "开源", "Agent", "不存在的标签"], editorialJudgment: `理由 ${marker}`, titleZh: `理解标题 ${marker}`, summaryZh: `理解摘要 ${marker}。第二句补充一个关键数字。` });
+    return answer({ itemType: "case_study", authorRole: "principal", tags: ["Studium przypadku", "Lean", "TPM", "Nieistniejący tag"], editorialJudgment: `理由 ${marker}`, titleZh: `理解标题 ${marker}`, summaryZh: `理解摘要 ${marker}。第二句补充一个关键数字。` });
   }
-  if (step === "structure") return answer({ category: "lean", tags: ["模型发布", "推理"], subjects: ["anthropic", "unknown-co"], scope: "single", fact: { title: `事实 ${marker}`, subject: "某公司", action: "发布", object: "模型", occurredAt: null, evidence: "a lab released a model", conditions: [] } });
+  if (step === "structure") return answer({ category: "lean", tags: ["Studium przypadku", "Kaizen"], subjects: ["toyota", "unknown-co"], scope: "single", fact: { title: `事实 ${marker}`, subject: "某公司", action: "发布", object: "模型", occurredAt: null, evidence: "a lab released a model", conditions: [] } });
   return answer(`title_zh: 翻译标题 ${marker}\nsummary_zh: 翻译摘要 ${marker}。第二句补充影响。`);
 });
 pointModels(provider.url);
@@ -100,17 +100,17 @@ test("a selected item: prefilter, two scores, the content understanding and the 
   const r = await row(id);
   assert.deepEqual([r.title_zh, r.reason_zh, r.category, r.receipt_ids.length], ["理解标题 CLEAR", "理由 CLEAR", "lean", 5]);
   // Failure case: the writer's independent labels contradict the structural category.
-  assert.deepEqual(r.tags, ["模型发布", "推理", "Anthropic"], "category and tags come from the same structural judgement, plus the verified subject tag");
-  assert.deepEqual(r.subjects, ["anthropic"]);
+  assert.deepEqual(r.tags, ["Studium przypadku", "Kaizen", "Toyota"], "category and tags come from the same structural judgement, plus the verified subject tag");
+  assert.deepEqual(r.subjects, ["toyota"]);
   assert.deepEqual([r.output.writer, r.output.itemType, r.output.prefilter.label, r.output.fact.title], ["understand", "case_study", "PASS", "事实 CLEAR"]);
   assert.equal(r.output.scope, "single");
   assert.equal(r.output.fact.evidence, "a lab released a model");
   const score = requests.find((q) => q.marker === "CLEAR" && q.step === "score")!;
-  assert.match(score.user, /【标题】\nCLEAR model release/, "the score reads the original title, before any writing");
+  assert.match(score.user, /【Tytuł】\nCLEAR model release/, "the score reads the original title, before any writing");
   const understand = requests.find((q) => q.marker === "CLEAR" && q.step === "understand")!;
-  assert.ok(understand.user.startsWith("请按系统规则理解以下单篇材料，一次返回全部六个字段。"));
+  assert.ok(understand.user.startsWith("Zgodnie z regułami systemowymi zrozum poniższy pojedynczy materiał i zwróć naraz wszystkie sześć pól."));
   const prefilter = requests.find((q) => q.marker === "CLEAR" && q.step === "prefilter")!;
-  assert.ok(JSON.parse(prefilter.user).includes("【材料质量】"), "the material context, sent as a JSON string");
+  assert.ok(JSON.parse(prefilter.user).includes("【Jakość materiału】"), "the material context, sent as a JSON string");
 });
 
 test("structure retains grounded conditions, rejects invented or unseen quotes, and does not infer missing scope", async () => {
@@ -154,7 +154,7 @@ test("a near-selected item is written like a selected one; below the floor it is
   const low = await analyzeArticle(lowId);
   assert.deepEqual([low!.output!.selected, low!.output!.titleZh, low!.output!.reasonZh], [false, "翻译标题 LOW", null]);
   assert.deepEqual(calls("LOW").sort(), ["prefilter", "score", "score", "structure", "summarize"]);
-  assert.deepEqual((await row(lowId)).tags, ["模型发布", "推理", "Anthropic"], "structure tags");
+  assert.deepEqual((await row(lowId)).tags, ["Studium przypadku", "Kaizen", "Toyota"], "structure tags");
 });
 
 test("the prefilter's BLOCK stops everything; UNKNOWN goes on like PASS", async () => {
@@ -190,32 +190,33 @@ test("a feed summary alone: the article page is fetched first, then the whole ar
   assert.deepEqual([second!.needsBody ?? false, second!.output!.selected], [false, true]);
 });
 
-test("a short post in Chinese is its own copy; a content-filter refusal is translated instead", async () => {
+test("a short post in Polish is its own copy; a content-filter refusal is translated instead", async () => {
   // The tag rides as a hashtag, which the language check strips.
-  const text = `推文：今天把智能体接进了工作流，效果不错。#t${T}`;
+  const text = `WPIS: dziś wdrożyliśmy kanban w zespole utrzymania ruchu i efekty są bardzo dobre. #t${T}`;
   const { articleId } = await upsertMaterial({
     sourceId: X_SOURCE, url: `https://x.com/test/status/1${Date.now()}`, title: text, via: "fetch", publishedAt: new Date(),
-    xPost: { tweetId: `1${Date.now()}`, authorName: "测试", handle: "test", text },
+    xPost: { tweetId: `1${Date.now()}`, authorName: "Test", handle: "test", text },
   });
   const post = await analyzeArticle(articleId);
   assert.deepEqual([post!.output!.titleZh, post!.output!.summaryZh], [text, text]);
-  assert.ok(!calls("推文").includes("summarize"), "no translation call");
+  assert.ok(!calls("WPIS").includes("summarize"), "no translation call");
   const sensitive = await analyzeArticle(await article("SENSITIVE"));
   assert.deepEqual([sensitive!.output!.selected, sensitive!.output!.titleZh], [true, "翻译标题 SENSITIVE"]);
   assert.deepEqual(calls("SENSITIVE").filter((s) => s === "understand" || s === "summarize"), ["understand", "summarize"]);
 });
 
 test("guards: a company the input does not name is not written in; long summaries are cut at sentences", () => {
-  const input = { title: "某实验室发布新模型", text: "某实验室发布了一个新模型，参数规模和价格都有说明。", sourceKind: "rss" };
-  const guarded = enforceIdentity(input, { titleZh: "OpenAI 发布新模型", summaryZh: "某实验室发布新模型。" });
-  assert.deepEqual([guarded.titleZh, guarded.summaryZh, guarded.identityGuard.outcome], ["某实验室发布新模型", "某实验室发布新模型。", "fallback"]);
-  // The identity lexicon: a Chinese rendering of a company the input names in English is no invention.
-  const alibaba = { title: "Alibaba ships a new coding model", text: "Alibaba released a coding model with pricing details.", sourceKind: "rss" };
-  assert.equal(enforceIdentity(alibaba, { titleZh: "阿里巴巴发布编程模型", summaryZh: "阿里巴巴发布了编程模型并公布价格。" }).identityGuard.outcome, "pass");
-  const long = "第一句交代了谁做了什么以及关键结果，这一句本身已经足够说明核心事件的来龙去脉。".repeat(3) + "第二句补充数字。".repeat(20);
-  assert.ok(compactAnswerFirstSummary(long).length <= 190);
-  assert.deepEqual(parseTranslateOutput("title_zh: 标题\nsummary_zh: 第一句。\n第二句。"), { titleZh: "标题", summaryZh: "第一句。\n第二句。", bodyZh: "" });
-  assert.equal(parseTranslateOutput("title_zh: 标题\nbody_zh: 我们懂你。\n\n来源：X：PixVerse (@PixVerse)").bodyZh, "我们懂你。", "a repeated prompt line is dropped");
+  const input = { title: "Producent komponentów otwiera nową fabrykę", text: "Producent komponentów otworzył nową fabrykę i podał skalę inwestycji.", sourceKind: "rss" };
+  const guarded = enforceIdentity(input, { titleZh: "Bosch otwiera nową fabrykę", summaryZh: "Producent komponentów otwiera nową fabrykę." });
+  assert.deepEqual([guarded.titleZh, guarded.summaryZh, guarded.identityGuard.outcome], ["Producent komponentów otwiera nową fabrykę", "Producent komponentów otwiera nową fabrykę.", "fallback"]);
+  // The identity lexicon: a declined Polish form of a company the input names in English is no invention.
+  const toyota = { title: "Toyota Motor opens a plant in Poland", text: "Toyota Motor opened a new plant in Poland and named its capacity.", sourceKind: "rss" };
+  assert.equal(enforceIdentity(toyota, { titleZh: "Nowa fabryka Toyoty w Polsce", summaryZh: "Toyota otworzyła w Polsce nowy zakład i podała jego moce." }).identityGuard.outcome, "pass");
+  const long = "Pierwsze zdanie mówi, kto co zrobił i jaki był kluczowy wynik, a samo wystarcza do zrozumienia sedna sprawy i jej skutków dla czytelnika z branży. ".repeat(3) + "Drugie zdanie dodaje liczby. ".repeat(20);
+  const compact = compactAnswerFirstSummary(long);
+  assert.ok(compact.length <= 450 && compact.endsWith("."), "cut at a sentence end within the limit");
+  assert.deepEqual(parseTranslateOutput("title_pl: Tytuł\nsummary_pl: Pierwsze zdanie.\nDrugie zdanie."), { titleZh: "Tytuł", summaryZh: "Pierwsze zdanie.\nDrugie zdanie.", bodyZh: "" });
+  assert.equal(parseTranslateOutput("title_pl: Tytuł\nbody_pl: Rozumiemy cię.\n\nŹródło: X: PixVerse (@PixVerse)").bodyZh, "Rozumiemy cię.", "a repeated prompt line is dropped");
 });
 
 test("analysing the same revision again reuses every paid answer", async () => {

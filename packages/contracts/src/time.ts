@@ -48,6 +48,7 @@ export function siteIso(instant: Date | string | number): string {
 /** UTC instant of an HH:mm site-local time on the given calendar day (the later one when DST repeats it). */
 export function siteAt(date: string, time: string): Date {
   const naive = Date.parse(`${date}T${time}:00Z`);
+  if (!Number.isFinite(naive)) return new Date(NaN); // not a calendar day: an invalid date, as new Date() gives
   // Two passes settle the offset on both sides of a DST change.
   let guess = naive - wallClock(naive).offsetMs;
   guess = naive - wallClock(guess).offsetMs;

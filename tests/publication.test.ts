@@ -436,11 +436,11 @@ test("share images keep detail metadata and access rules while conditional reads
   const id = await article();
   await publishArticle(id, released());
   const d = JSON.parse((await get(`/api/site/items/${id}`)).body);
-  const kicker = d.category ? CATEGORY_LABELS[d.category as keyof typeof CATEGORY_LABELS] : withSubject("动态");
+  const kicker = d.category ? CATEGORY_LABELS[d.category as keyof typeof CATEGORY_LABELS] : "Wiadomości";
   const source = d.source.name;
   const date = siteDate(d.timelineAt);
   const card = { kicker, title: d.title, subtitle: d.summary, meta: `${source} · ${date}`,
-    badge: d.selected && d.score !== null ? { value: String(Math.round(d.score)), label: "精选评分" } : null };
+    badge: d.selected && d.score !== null ? { value: String(Math.round(d.score)), label: "ocena" } : null };
   const poster = { url: `${config.siteUrl}/items/${id}`, kicker, title: d.title, summary: d.summary, source, date, score: d.selected ? d.score : null };
   const paths = [[`/og/items/${id}.png`, `"og-${ogEtag(card)}"`], [`/og/posters/${id}.png`, `"poster-${posterEtag(poster)}"`]];
   const queries: string[] = [];

@@ -9,17 +9,17 @@ import { parseLooseDate } from "@aihot/backend/sources/dates";
 const iso = (v: string, offset?: string) => parseLooseDate(v, offset)?.toISOString() ?? null;
 
 test("a date and time without a zone is in the source's offset, not the server's", () => {
-  assert.equal(iso("2026-09-26 10:00"), "2026-09-26T02:00:00.000Z");
-  assert.equal(iso("2026-09-26T10:00:00"), "2026-09-26T02:00:00.000Z");
-  assert.equal(iso("2026/09/26 10:00"), "2026-09-26T02:00:00.000Z");
-  assert.equal(iso("2026年9月26日 10:00"), "2026-09-26T02:00:00.000Z");
+  assert.equal(iso("2026-09-26 10:00"), "2026-09-26T09:00:00.000Z");
+  assert.equal(iso("2026-09-26T10:00:00"), "2026-09-26T09:00:00.000Z");
+  assert.equal(iso("2026/09/26 10:00"), "2026-09-26T09:00:00.000Z");
+  assert.equal(iso("2026年9月26日 10:00"), "2026-09-26T09:00:00.000Z");
   assert.equal(iso("2026-09-26 10:00", "-07:00"), "2026-09-26T17:00:00.000Z");
 });
 
 test("a bare date is midnight in the source's offset; an ISO date alone stays UTC midnight", () => {
-  assert.equal(iso("2026/09/26"), "2026-09-25T16:00:00.000Z");
-  assert.equal(iso("2026年9月26日"), "2026-09-25T16:00:00.000Z");
-  assert.equal(iso("Sep 26, 2026"), "2026-09-25T16:00:00.000Z");
+  assert.equal(iso("2026/09/26"), "2026-09-25T23:00:00.000Z");
+  assert.equal(iso("2026年9月26日"), "2026-09-25T23:00:00.000Z");
+  assert.equal(iso("Sep 26, 2026"), "2026-09-25T23:00:00.000Z");
   assert.equal(iso("2026-09-26"), "2026-09-26T00:00:00.000Z");
   assert.equal(iso("September 26th, 2026", "+00:00"), "2026-09-26T00:00:00.000Z");
 });
@@ -45,7 +45,7 @@ test("an article page's publication time without a zone is the same moment on a 
   };
   try {
     for (const tz of ["UTC", "Asia/Shanghai"]) {
-      assert.equal(read(tz, "2026-09-26T10:00:00"), "2026-09-26T02:00:00.000Z", tz);
+      assert.equal(read(tz, "2026-09-26T10:00:00"), "2026-09-26T09:00:00.000Z", tz);
       assert.equal(read(tz, "2026-09-26T10:00:00", "+00:00"), "2026-09-26T10:00:00.000Z", tz);
       assert.equal(read(tz, "2026-09-26T10:00:00+09:00", "+00:00"), "2026-09-26T01:00:00.000Z", tz);
     }

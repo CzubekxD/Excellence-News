@@ -16,10 +16,10 @@ const reference = (grouped: readonly { anchor: number }[], days: ReadonlySet<str
 };
 const descending = (anchors: number[]) => anchors.sort((a, b) => b - a).map(anchor => ({ anchor }));
 
-test("day counts retain exact Beijing midnight, leap-day and year boundaries", () => {
+test("day counts retain exact Warsaw midnight, leap-day and year boundaries", () => {
   assert.deepEqual(countTimelineDays([], new Set()), {});
   // UTC inputs and calendar answers are independent of the production timezone helpers.
-  const anchors = ["2023-12-30T16:00:00Z", "2023-12-31T16:00:00Z", "2024-02-28T16:00:00Z", "2024-02-29T16:00:00Z"].flatMap(time => {
+  const anchors = ["2023-12-30T23:00:00Z", "2023-12-31T23:00:00Z", "2024-02-28T23:00:00Z", "2024-02-29T23:00:00Z"].flatMap(time => {
     const midnight = Date.parse(time);
     return [midnight - 1, midnight, midnight, midnight + 1];
   });

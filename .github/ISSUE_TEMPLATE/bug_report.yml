@@ -1,49 +1,48 @@
-name: 问题反馈 / Bug report
-description: 报告可以复现的故障，帮助我们定位和修复。
+name: Zgłoszenie błędu
+description: Zgłoś błąd, który da się odtworzyć.
 labels: [bug]
 body:
   - type: markdown
     attributes:
       value: |
-        部署与使用问题可以先到 [问答区](https://github.com/KKKKhazix/AIHOT/discussions/categories/q-a) 交流。
-        安全漏洞请通过 [私密漏洞报告](https://github.com/KKKKhazix/AIHOT/security/advisories/new) 提交。
-        请勿上传完整 .env、API Key、管理员密码、Cookie 或生产数据库。
+        Podatności zgłaszaj [prywatnie](https://github.com/CzubekxD/Excellence-News/security/advisories/new).
+        Nie wklejaj całego .env, kluczy API, hasła administratora, ciasteczek ani bazy produkcyjnej.
   - type: input
     id: revision
     attributes:
-      label: 代码版本
-      description: 在仓库目录执行 git rev-parse --short HEAD；不确定时说明下载或更新日期。用 Use this template 生成的仓库，提交号和本仓库对不上，请写生成日期或最近一次同步本仓库的日期。
-      placeholder: 提交号，或下载、生成、同步的日期
+      label: Wersja kodu
+      description: Wynik git rev-parse --short HEAD w katalogu repozytorium; jeśli nie wiesz, podaj datę pobrania lub aktualizacji.
+      placeholder: commit albo data pobrania
     validations:
       required: true
   - type: textarea
     id: environment
     attributes:
-      label: 运行环境
-      description: 写明系统、Docker 或本机部署、相关版本；网页问题请注明浏览器。
-      placeholder: Ubuntu / macOS；Docker Compose / Node.js；是否有反向代理；是否改过相关配置。
+      label: Środowisko
+      description: System, Docker czy uruchomienie bez Dockera, wersje; przy problemach ze stroną także przeglądarka.
+      placeholder: Debian w VM na Proxmoxie; Docker Compose; reverse proxy tak/nie; zmienione ustawienia.
     validations:
       required: true
   - type: textarea
     id: reproduction
     attributes:
-      label: 复现步骤
-      description: 从哪个页面、命令或操作开始？提供能复现问题的最少步骤。
+      label: Kroki odtworzenia
+      description: Od jakiej strony, polecenia lub działania zacząć? Najkrótsze kroki, które pokazują problem.
       placeholder: |
-        1. 打开……
-        2. 执行……
-        3. 出现……
+        1. Otwórz…
+        2. Wykonaj…
+        3. Pojawia się…
     validations:
       required: true
   - type: textarea
     id: expected-actual
     attributes:
-      label: 预期结果与实际结果
-      placeholder: 预期……；实际……
+      label: Oczekiwany i faktyczny wynik
+      placeholder: Oczekiwano…; faktycznie…
     validations:
       required: true
   - type: textarea
     id: evidence
     attributes:
-      label: 相关日志或截图（可选）
-      description: 只贴相关片段，提交前移除密钥、密码、Cookie 和个人信息；没有日志也可以提交。
+      label: Logi lub zrzuty ekranu (opcjonalnie)
+      description: Tylko istotne fragmenty, bez kluczy, haseł, ciasteczek i danych osobowych; zgłoszenie bez logów też jest w porządku.
