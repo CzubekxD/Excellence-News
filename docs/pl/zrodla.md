@@ -4,7 +4,7 @@ Lista startowa jest w [`industry/sources.json`](../../industry/sources.json) i i
 
 Teksty po angielsku, francusku i hiszpańsku serwis streszcza po polsku; pełne treści zostają na stronach źródeł (domyślnie serwis pokazuje tylko streszczenie i link).
 
-## Lista startowa (30 źródeł)
+## Lista startowa (33 źródła)
 
 **Poziom** decyduje o progu wyboru: `T1` źródła z pierwszej ręki (instytucje, autorzy metod), `T1_5` uznani praktycy i eksperci, `T2` media branżowe (najwyższy próg, bo dużo szumu).
 
@@ -21,6 +21,8 @@ Teksty po angielsku, francusku i hiszpańsku serwis streszcza po polsku; pełne 
 | All About Lean (Christoph Roser) | T1_5 | EN | https://www.allaboutlean.com/feed/ |
 | Operational Excellence Mixtape | T1_5 | EN | https://ryanmccormack.substack.com/feed |
 | Progressa Lean | T1_5 | ES | https://www.progressalean.com/feed/ |
+| Katie Anderson (przywództwo, Toyota) | T1_5 | EN | https://kbjanderson.com/feed/ |
+| Pascal Dennis: Lean Systems | T1_5 | EN | https://blog.leansystems.org/feeds/posts/default?alt=rss |
 | APQC (benchmarki procesów i kosztów) | T1 | EN | https://www.apqc.org/blog/rss.xml |
 
 ### Agile i Kanban
@@ -28,10 +30,10 @@ Teksty po angielsku, francusku i hiszpańsku serwis streszcza po polsku; pełne 
 | Źródło | Poziom | Język | Kanał |
 |---|---|---|---|
 | Scrum.org | T1 | EN | https://www.scrum.org/resources/blog/rss.xml |
-| Kanban University | T1 | EN | https://kanban.university/feed/ |
 | Mike Cohn: Mountain Goat Software | T1_5 | EN | https://www.mountaingoatsoftware.com/blog/rss |
-| Stefan Wolpers: Age of Product | T1_5 | EN | https://age-of-product.com/feed/ |
 | Paweł Brodziński | T1_5 | PL | https://brodzinski.com/feed |
+| Karl Scotland: AvailAgility (Kanban, X-Matrix, Hoshin Kanri) | T1_5 | EN | https://availagility.co.uk/feed/ |
+| Nave Blog (metryki przepływu) | T1_5 | EN | https://getnave.com/blog/feed/ |
 | Agile Spain | T1_5 | ES | https://agile-spain.org/feed/ |
 | OCTO Technology | T1_5 | FR | https://blog.octo.com/feed |
 
@@ -60,6 +62,7 @@ Teksty po angielsku, francusku i hiszpańsku serwis streszcza po polsku; pełne 
 |---|---|---|---|
 | Manufacturing Dive | T2 | EN | https://www.manufacturingdive.com/feeds/news/ |
 | wnp.pl: Przemysł | T2 | PL | https://www.wnp.pl/rss/przemysl_rss.xml |
+| Inżynieria i Utrzymanie Ruchu (TPM, utrzymanie ruchu) | T2 | PL | https://utrzymanieruchu.pl/feed/ |
 | L'Usine Nouvelle | T2 | FR | https://www.usinenouvelle.com/arc/outboundfeeds/rss/ |
 | Journal de l'Automobile | T2 | FR | https://journalauto.com/feed/ |
 
@@ -105,3 +108,19 @@ Wiele dobrych treści o Lean i OPEX przychodzi tylko e-mailem. Można je wysyła
 - Domyślnie serwis pokazuje tylko streszczenie i link do oryginału (`site_fulltext` wyłączone). Pełny tekst włączaj tylko wtedy, gdy źródło wyraźnie na to pozwala.
 - Stare teksty nie zalewają strony: przy pierwszym imporcie źródła trafiają do archiwum według daty oryginału, nie do „dziś”.
 - Źródło z błędami pobierania widać w panelu (**Źródła**, sortowanie według stanu) i w zakładce **Działanie**.
+
+## Sprawdzone i odrzucone (październik 2026)
+
+Żeby nie sprawdzać ich drugi raz:
+
+| Źródło | Powód |
+|---|---|
+| Kanban University (`kanban.university/feed/`) | kanał martwy, ostatni wpis lipiec 2025 |
+| Stefan Wolpers: Age of Product | serwer odpowiada 403 (blokuje roboty) |
+| iSixSigma | kanał główny zalany artykułami o samochodach; kanały kategorii nie działają |
+| PEX Network (Lean Six Sigma) | kanał działa, ale ostatni wpis styczeń 2026 |
+| IndustryWeek | kanał RSS z 2014 roku |
+| A Lean Journey, TXM, Shinka Management | rzadko publikują (ostatnie wpisy sprzed miesięcy) |
+| Kevin Meyer | blog mieszany: AI, podróże, kuchnia; Lean rzadko |
+| Automobil Industrie, MM Maschinenmarkt | działają, ale to ogólna branżówka (50 tekstów dziennie); zjadłyby limit modelu na szum |
+| Kaizen Institute, lean.org.pl, Gemba Panta Rhei | brak kanału RSS |

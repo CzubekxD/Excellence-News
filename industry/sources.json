@@ -194,6 +194,48 @@
       "syndicate_fulltext": false
     },
     {
+      "id": "rss-katie-anderson",
+      "name": "Katie Anderson",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://kbjanderson.com/feed/",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T1_5",
+      "owner_entity_id": null,
+      "participation_mode": "editorial",
+      "interval_minutes": 720,
+      "tags": [
+        "ekspert",
+        "lean"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-lean-systems",
+      "name": "Pascal Dennis: Lean Systems",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://blog.leansystems.org/feeds/posts/default?alt=rss",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T1_5",
+      "owner_entity_id": null,
+      "participation_mode": "editorial",
+      "interval_minutes": 720,
+      "tags": [
+        "ekspert",
+        "lean"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
       "id": "rss-apqc",
       "name": "APQC",
       "kind": "rss",
@@ -237,27 +279,6 @@
       "syndicate_fulltext": false
     },
     {
-      "id": "rss-kanban-university",
-      "name": "Kanban University",
-      "kind": "rss",
-      "config": {
-        "feedUrl": "https://kanban.university/feed/",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
-      },
-      "tier": "T1",
-      "owner_entity_id": "kanban-university",
-      "participation_mode": "editorial",
-      "interval_minutes": 720,
-      "tags": [
-        "instytucja",
-        "kanban"
-      ],
-      "site_fulltext": false,
-      "syndicate_fulltext": false
-    },
-    {
       "id": "rss-mountain-goat",
       "name": "Mike Cohn: Mountain Goat Software",
       "kind": "rss",
@@ -271,27 +292,6 @@
       "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 720,
-      "tags": [
-        "ekspert",
-        "agile"
-      ],
-      "site_fulltext": false,
-      "syndicate_fulltext": false
-    },
-    {
-      "id": "rss-age-of-product",
-      "name": "Stefan Wolpers: Age of Product",
-      "kind": "rss",
-      "config": {
-        "feedUrl": "https://age-of-product.com/feed/",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
-      },
-      "tier": "T1_5",
-      "owner_entity_id": null,
-      "participation_mode": "editorial",
-      "interval_minutes": 360,
       "tags": [
         "ekspert",
         "agile"
@@ -317,6 +317,48 @@
         "ekspert",
         "kanban",
         "PL"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-availagility",
+      "name": "Karl Scotland: AvailAgility",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://availagility.co.uk/feed/",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T1_5",
+      "owner_entity_id": null,
+      "participation_mode": "editorial",
+      "interval_minutes": 720,
+      "tags": [
+        "ekspert",
+        "kanban"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-nave",
+      "name": "Nave Blog",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://getnave.com/blog/feed/",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T1_5",
+      "owner_entity_id": null,
+      "participation_mode": "editorial",
+      "interval_minutes": 720,
+      "tags": [
+        "ekspert",
+        "kanban"
       ],
       "site_fulltext": false,
       "syndicate_fulltext": false
@@ -572,6 +614,28 @@
       "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 60,
+      "tags": [
+        "media",
+        "przemysł",
+        "PL"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-utrzymanie-ruchu",
+      "name": "Inżynieria i Utrzymanie Ruchu",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://utrzymanieruchu.pl/feed/",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "owner_entity_id": null,
+      "participation_mode": "editorial",
+      "interval_minutes": 360,
       "tags": [
         "media",
         "przemysł",

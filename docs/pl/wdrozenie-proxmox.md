@@ -101,7 +101,7 @@ Pierwsze budowanie trwa kilka minut. Potem:
 - strona: `http://ADRES_SERWERA:3000`
 - panel: `http://ADRES_SERWERA:3000/admin` (hasło z `ADMIN_PASSWORD`)
 
-Worker od razu zaczyna pobierać 30 źródeł z [`industry/sources.json`](../../industry/sources.json). Pierwsze wybrane wiadomości pojawią się po kilkunastu–kilkudziesięciu minutach. Dziennik wychodzi codziennie o 7:00, tygodnik w poniedziałki o 7:30, miesięcznik pierwszego dnia miesiąca o 8:00 (czas polski; zmiana w `site/site.ts`, `EDITION_TIMES`).
+Worker od razu zaczyna pobierać 33 źródła z [`industry/sources.json`](../../industry/sources.json). Pierwsze wybrane wiadomości pojawią się po kilkunastu–kilkudziesięciu minutach. Dziennik wychodzi codziennie o 7:00, tygodnik w poniedziałki o 7:30, miesięcznik pierwszego dnia miesiąca o 8:00 (czas polski; zmiana w `site/site.ts`, `EDITION_TIMES`).
 
 Przydatne polecenia (w katalogu z kodem, po instalacji skryptem `/opt/excellence-news`; bez `sudo` po dodaniu się do grupy: `sudo usermod -aG docker $USER` i ponownym zalogowaniu):
 
