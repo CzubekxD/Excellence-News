@@ -31,6 +31,7 @@ Logo i ikony serwisu. Nie używaj nazwy ani logo AIHOT; wzmianka o frameworku w 
 | `supply-chain` | Łańcuch dostaw | transport i fracht, logistyka, magazyny, zapasy |
 | `industry` | Przemysł | przemysł i motoryzacja: inwestycje, zakłady, wyniki, regulacje |
 | `leadership` | Ludzie i kultura | przywództwo, rola managera, kultura (kategoria komentarzowa) |
+| `stats` | Statystyka | statystyka i analiza danych jako dziedzina, także poza przemysłem |
 
 Zmieniasz klucz kategorii? Zmień go też w `topics.json`, przykładach w promptach i testach (`npm run typecheck` pokaże miejsca). W tym samym pliku są tagi tematów, firmy i instytucje (`ENTITIES`) oraz słownik chroniący przed pomyleniem firm (`IDENTITY_LEXICON`).
 

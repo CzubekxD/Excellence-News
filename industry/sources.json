@@ -408,6 +408,90 @@
       "syndicate_fulltext": false
     },
     {
+      "id": "rss-significance",
+      "name": "Significance (RSS i ASA)",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://significancemagazine.com/feed/",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T1",
+      "owner_entity_id": null,
+      "participation_mode": "editorial",
+      "interval_minutes": 360,
+      "tags": [
+        "instytucja",
+        "statystyka"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-statistics-by-jim",
+      "name": "Statistics By Jim",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://statisticsbyjim.com/feed/",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T1_5",
+      "owner_entity_id": null,
+      "participation_mode": "editorial",
+      "interval_minutes": 720,
+      "tags": [
+        "ekspert",
+        "statystyka"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-data-colada",
+      "name": "Data Colada",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://datacolada.org/feed",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T1_5",
+      "owner_entity_id": null,
+      "participation_mode": "editorial",
+      "interval_minutes": 720,
+      "tags": [
+        "ekspert",
+        "statystyka"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-frank-harrell",
+      "name": "Frank Harrell: Statistical Thinking",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://www.fharrell.com/index.xml",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T1_5",
+      "owner_entity_id": null,
+      "participation_mode": "editorial",
+      "interval_minutes": 720,
+      "tags": [
+        "ekspert",
+        "statystyka"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
       "id": "rss-mckinsey",
       "name": "McKinsey Insights",
       "kind": "rss",
@@ -662,28 +746,6 @@
         "media",
         "biznes",
         "PL"
-      ],
-      "site_fulltext": false,
-      "syndicate_fulltext": false
-    },
-    {
-      "id": "rss-usine-nouvelle",
-      "name": "L'Usine Nouvelle",
-      "kind": "rss",
-      "config": {
-        "feedUrl": "https://www.usinenouvelle.com/arc/outboundfeeds/rss/",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
-      },
-      "tier": "T2",
-      "owner_entity_id": null,
-      "participation_mode": "editorial",
-      "interval_minutes": 60,
-      "tags": [
-        "media",
-        "przemysł",
-        "FR"
       ],
       "site_fulltext": false,
       "syndicate_fulltext": false

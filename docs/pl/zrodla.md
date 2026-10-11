@@ -4,7 +4,7 @@ Lista startowa jest w [`industry/sources.json`](../../industry/sources.json) i i
 
 Teksty po angielsku, francusku i hiszpańsku serwis streszcza po polsku; pełne treści zostają na stronach źródeł (domyślnie serwis pokazuje tylko streszczenie i link).
 
-## Lista startowa (33 źródła)
+## Lista startowa (36 źródeł)
 
 **Poziom** decyduje o progu wyboru: `T1` źródła z pierwszej ręki (instytucje, autorzy metod), `T1_5` uznani praktycy i eksperci, `T2` media branżowe (najwyższy próg, bo dużo szumu).
 
@@ -37,6 +37,15 @@ Teksty po angielsku, francusku i hiszpańsku serwis streszcza po polsku; pełne 
 | Agile Spain | T1_5 | ES | https://agile-spain.org/feed/ |
 | OCTO Technology | T1_5 | FR | https://blog.octo.com/feed |
 
+### Statystyka
+
+| Źródło | Poziom | Język | Kanał |
+|---|---|---|---|
+| Significance (Royal Statistical Society i ASA) | T1 | EN | https://significancemagazine.com/feed/ |
+| Statistics By Jim (statystyka stosowana) | T1_5 | EN | https://statisticsbyjim.com/feed/ |
+| Data Colada (rzetelność badań, replikacja) | T1_5 | EN | https://datacolada.org/feed |
+| Frank Harrell: Statistical Thinking | T1_5 | EN | https://www.fharrell.com/index.xml |
+
 ### Koszty i operacje
 
 | Źródło | Poziom | Język | Kanał |
@@ -63,7 +72,6 @@ Teksty po angielsku, francusku i hiszpańsku serwis streszcza po polsku; pełne 
 | Manufacturing Dive | T2 | EN | https://www.manufacturingdive.com/feeds/news/ |
 | wnp.pl: Przemysł | T2 | PL | https://www.wnp.pl/rss/przemysl_rss.xml |
 | Inżynieria i Utrzymanie Ruchu (TPM, utrzymanie ruchu) | T2 | PL | https://utrzymanieruchu.pl/feed/ |
-| L'Usine Nouvelle | T2 | FR | https://www.usinenouvelle.com/arc/outboundfeeds/rss/ |
 | Journal de l'Automobile | T2 | FR | https://journalauto.com/feed/ |
 
 ## Warte dodania, ale bez RSS
@@ -124,3 +132,7 @@ Wiele dobrych treści o Lean i OPEX przychodzi tylko e-mailem. Można je wysyła
 | Kevin Meyer | blog mieszany: AI, podróże, kuchnia; Lean rzadko |
 | Automobil Industrie, MM Maschinenmarkt | działają, ale to ogólna branżówka (50 tekstów dziennie); zjadłyby limit modelu na szum |
 | Kaizen Institute, lean.org.pl, Gemba Panta Rhei | brak kanału RSS |
+| L'Usine Nouvelle | prawie wszystko za paywallem; do tego ok. 30 tekstów dziennie, głównie poza zakresem |
+| Statistical Modeling (Andrew Gelman) | blog akademicki, ok. 2 wpisy dziennie; za dużo jak na limit modelu |
+| Minitab Blog, W. Edwards Deming Institute | kanały bez nowych wpisów od miesięcy |
+| Quality Digest | kanał główny bez tekstów o statystyce |

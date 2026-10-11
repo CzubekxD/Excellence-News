@@ -22,6 +22,7 @@ export const CATEGORIES = [
   { key: "supply-chain", label: "Łańcuch dostaw", feedLabel: "Logistyka i łańcuch dostaw", section: "Logistyka i łańcuch dostaw", guide: "Transport i fracht (stawki, paliwo, przewoźnicy), logistyka wewnętrzna i magazyny, planowanie, zapasy, odporność łańcucha dostaw, cła wpływające na dostawy. Inwestycje w nowe fabryki to Przemysł." },
   { key: "industry", label: "Przemysł", feedLabel: "Przemysł i motoryzacja", section: "Przemysł i motoryzacja", guide: "Wydarzenia biznesowe w przemyśle i motoryzacji: inwestycje, otwarcia i zamknięcia zakładów, przejęcia, wyniki, zwolnienia, nominacje, regulacje i polityka przemysłowa, dane makro dla produkcji (PMI). Gdy tekst opisuje metodę doskonalenia, wybierz kategorię metody." },
   { key: "leadership", label: "Ludzie i kultura", feedLabel: "Przywództwo, ludzie i kultura", section: "Ludzie, przywództwo i kultura", guide: "Przywództwo, rola managera, zaangażowanie, kultura organizacyjna, zarządzanie zmianą, rozwój kompetencji, psychologia zespołu. Liczy się teza autora albo wnioski z doświadczenia; konkretne narzędzie Lean lub Agile idzie do swojej kategorii.", commentary: true },
+  { key: "stats", label: "Statystyka", feedLabel: "Statystyka i analiza danych", section: "Statystyka i dane", guide: "Statystyka i analiza danych jako dziedzina: metody, wnioskowanie (testy, przedziały ufności, podejście bayesowskie), eksperymenty, regresja, błędy w interpretacji danych, replikacja i rzetelność badań. Także bez związku z przemysłem. Gdy statystyka jest tylko narzędziem w programie jakości lub Six Sigma, wybierz OPEX i jakość." },
 ] as const satisfies ReadonlyArray<{ key: string; label: string; feedLabel?: string; section: string; guide: string; commentary?: true }>;
 
 /**
@@ -51,7 +52,7 @@ export const CATEGORY_TAGS = [
 export const TOPIC_TAGS = [
   "Lean", "TPS", "Kaizen", "Standaryzacja", "Rozwiązywanie problemów", "Hoshin Kanri", "Six Sigma", "Jakość", "TPM", "Kanban", "Scrum",
   "Agile na skalę", "Metryki przepływu", "OKR", "Koszty pośrednie", "Koszty pracy", "Zakupy", "Transport", "Magazyn", "Energia",
-  "Automatyzacja", "AI w operacjach", "Motoryzacja", "Przywództwo", "Zarządzanie zmianą",
+  "Automatyzacja", "AI w operacjach", "Motoryzacja", "Przywództwo", "Zarządzanie zmianą", "Statystyka",
 ] as const;
 
 /** Tagi firm i instytucji do wyboru. */

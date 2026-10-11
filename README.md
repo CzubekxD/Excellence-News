@@ -7,7 +7,7 @@ Serwis sam czyta kilkadziesiąt źródeł po polsku, angielsku, francusku i hisz
 ## Co dostajesz
 
 - **Wybór:** najważniejsze teksty dnia z polskim tytułem, streszczeniem i uzasadnieniem „Dlaczego warto”.
-- **Wszystkie:** pełny strumień z filtrami według kategorii: Lean i TPS, OPEX i jakość, Agile i flow, Koszty, Łańcuch dostaw, Przemysł, Ludzie i kultura.
+- **Wszystkie:** pełny strumień z filtrami według kategorii: Lean i TPS, OPEX i jakość, Agile i flow, Koszty, Łańcuch dostaw, Przemysł, Ludzie i kultura, Statystyka.
 - **Na czasie:** sprawy omawiane przez najwięcej niezależnych źródeł.
 - **Wydarzenia:** wszystkie relacje o jednej sprawie w jednym miejscu, z zarysem i osią czasu.
 - **Tematy:** strony tematów, np. SMED, Kanban, koszty transportu, Six Sigma.
