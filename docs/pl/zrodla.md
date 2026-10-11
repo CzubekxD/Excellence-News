@@ -4,7 +4,7 @@ Lista startowa jest w [`industry/sources.json`](../../industry/sources.json) i i
 
 Teksty po angielsku, francusku i hiszpańsku serwis streszcza po polsku; pełne treści zostają na stronach źródeł (domyślnie serwis pokazuje tylko streszczenie i link).
 
-## Lista startowa (36 źródeł)
+## Lista startowa (37 źródeł)
 
 **Poziom** decyduje o progu wyboru: `T1` źródła z pierwszej ręki (instytucje, autorzy metod), `T1_5` uznani praktycy i eksperci, `T2` media branżowe (najwyższy próg, bo dużo szumu).
 
@@ -45,6 +45,7 @@ Teksty po angielsku, francusku i hiszpańsku serwis streszcza po polsku; pełne 
 | Statistics By Jim (statystyka stosowana) | T1_5 | EN | https://statisticsbyjim.com/feed/ |
 | Data Colada (rzetelność badań, replikacja) | T1_5 | EN | https://datacolada.org/feed |
 | Frank Harrell: Statistical Thinking | T1_5 | EN | https://www.fharrell.com/index.xml |
+| Janina Bąk: Janina Daily (metodologia badań, statystyka w mediach) | T1_5 | PL | https://janinadaily.com/feed/ |
 
 ### Koszty i operacje
 

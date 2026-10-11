@@ -492,6 +492,28 @@
       "syndicate_fulltext": false
     },
     {
+      "id": "rss-janina-daily",
+      "name": "Janina Bąk: Janina Daily",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://janinadaily.com/feed/",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T1_5",
+      "owner_entity_id": null,
+      "participation_mode": "editorial",
+      "interval_minutes": 720,
+      "tags": [
+        "ekspert",
+        "statystyka",
+        "PL"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
       "id": "rss-mckinsey",
       "name": "McKinsey Insights",
       "kind": "rss",
