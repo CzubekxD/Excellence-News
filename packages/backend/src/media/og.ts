@@ -26,12 +26,18 @@ export interface OgCard {
 let fontsPromise: Promise<Array<{ name: string; data: Buffer; weight: 400 | 700; style: "normal" }>> | null = null;
 
 function fonts() {
+  // Archivo Narrow sets the issue covers' names and headlines (media/cover.ts); it comes as two
+  // subsets, and satori takes a glyph from whichever face of the family has it.
   fontsPromise ??= Promise.all([
     readFile(path.join(REPO_ROOT, "assets/og-fonts/noto-sans-400.ttf")),
     readFile(path.join(REPO_ROOT, "assets/og-fonts/noto-sans-700.ttf")),
-  ]).then(([regular, bold]) => [
+    readFile(path.join(REPO_ROOT, "assets/og-fonts/archivo-narrow-700-latin.woff")),
+    readFile(path.join(REPO_ROOT, "assets/og-fonts/archivo-narrow-700-latin-ext.woff")),
+  ]).then(([regular, bold, narrow, narrowExt]) => [
     { name: "Noto Sans", data: regular, weight: 400, style: "normal" },
     { name: "Noto Sans", data: bold, weight: 700, style: "normal" },
+    { name: "Archivo Narrow", data: narrow, weight: 700, style: "normal" },
+    { name: "Archivo Narrow", data: narrowExt, weight: 700, style: "normal" },
   ]);
   return fontsPromise;
 }

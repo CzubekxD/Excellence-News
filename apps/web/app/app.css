@@ -1,4 +1,11 @@
 @import "tailwindcss";
+/* Self-hosted faces (Polish letters live in the latin-ext subsets; browsers fetch only what a page uses):
+   Archivo with its width axis for mastheads and headlines, Newsreader for long reading, IBM Plex Mono for
+   folios, numbers and labels. */
+@import "@fontsource-variable/archivo/wdth.css";
+@import "@fontsource-variable/newsreader/index.css";
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/500.css";
 /* Classes also live in the site's logo and changelog drawings (site/brand, site/changelog) and in the
    modules' web code (their other files are not scanned: words in backend code and data would become classes). */
 @source "../../../site/brand";
@@ -6,8 +13,9 @@
 @source "../../../modules/*/{web.tsx,web/**}";
 
 /* ---------------------------------------------------------------------------
-   Design tokens: warm off-white paper, ink text, one teal accent (cyan in
-   dark), hairline borders, no gradients.
+   Design tokens: an old magazine in black, white and grey. Newsprint ground,
+   paper sheets, ink type, hard rules, square corners; the accent is the ink
+   itself. Colour is kept for state only (hot, warning, success).
    Components use the semantic names below; values change per theme only.
    --------------------------------------------------------------------------- */
 
@@ -16,8 +24,10 @@
 @custom-variant touch (@media (hover: none));
 
 @theme {
-  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "HarmonyOS Sans SC", "Microsoft YaHei", sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  --font-sans: "Archivo Variable", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Archivo Variable", "Arial Narrow", "Helvetica Neue Condensed", Impact, sans-serif;
+  --font-serif: "Newsreader Variable", Georgia, "Times New Roman", serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
   /* Semantic colours. */
   --color-bg: var(--bg);
@@ -55,15 +65,14 @@
   --color-rank-3: var(--rank-3);
   --color-rank-rest: var(--rank-rest);
 
-  /* Radius scale: mark 5 (inline code, kbd, tiny tags and swatches), control 8 (inputs, small
-     blocks), tile 10 (list rows, hover areas), card 12, panel 14 (wells, pictures), sheet 16 (dialogs,
-     sheets, hero shells); pills are rounded-full. Arbitrary radii are not used. */
-  --radius-mark: 5px;
-  --radius-control: 8px;
-  --radius-tile: 10px;
-  --radius-card: 12px;
-  --radius-panel: 14px;
-  --radius-sheet: 16px;
+  /* Radius scale: printed matter has square corners, so every step is 0 (mark, control, tile, card,
+     panel, sheet keep their names for the components); pills stay rounded-full. */
+  --radius-mark: 0px;
+  --radius-control: 0px;
+  --radius-tile: 0px;
+  --radius-card: 0px;
+  --radius-panel: 0px;
+  --radius-sheet: 0px;
 
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
 
@@ -88,54 +97,54 @@
   --gutter-l: max(16px, env(safe-area-inset-left));
   --gutter-r: max(16px, env(safe-area-inset-right));
   color-scheme: light;
-  --bg: #faf9f6;
-  --bg-sunk: #f3f3ef;
-  --bg-muted: #e9ede9;
-  --surface: #ffffff;
-  --surface-2: #fdfdfb;
-  --raised: #ffffff;
-  --sidebar: #fdfdfb;
-  --daybar: #f0f2ee;
-  --field: #eef1ed;
-  --ink: #202a30;
-  --ink-2: #303c42;
-  --ink-3: #59656b;
-  --ink-4: #657176;
-  --line: #dfe4e1;
-  --line-strong: #d1d9d5;
-  --line-soft: #e9ede9;
-  --accent: #176b75;
-  --accent-ink: #145f68;
-  --accent-soft: rgba(23, 107, 117, 0.08);
-  --accent-softer: rgba(23, 107, 117, 0.05);
-  --accent-contrast: #ffffff;
-  --note: #526f72;
-  --hot: #b3402a;
-  --hot-soft: rgba(179, 64, 42, 0.08);
-  --amber: #b8873a;
-  --amber-ink: #7c5a24;
-  --amber-soft: rgba(184, 135, 58, 0.1);
-  --ok: #2f7d5c;
-  --ok-soft: rgba(47, 125, 92, 0.1);
-  --ok-ink: #2a6e51;
-  --rank-1: #b3402a;
-  --rank-2: #a3642f;
-  --rank-3: #96702e;
-  --rank-rest: #6b7684;
-  --shadow-card: 0 1px 2px rgba(32, 42, 48, 0.025);
-  --shadow-card-hover: 0 3px 12px rgba(32, 42, 48, 0.055);
-  --shadow-soft: 0 4px 12px rgba(28, 39, 51, 0.06);
-  --shadow-thumb: 0 1px 2px rgba(28, 39, 51, 0.1), 0 1px 1px rgba(28, 39, 51, 0.04);
-  --shadow-pop: 0 12px 32px rgba(28, 39, 51, 0.12);
-  --prose-ink: #26323a;
-  --code-bg: #f6f7f4;
-  --code-keyword: #006d77;
-  --code-string: #2f6f44;
-  --code-number: #9a6700;
-  --code-title: #6f42c1;
-  --code-variable: #a13d10;
-  --code-meta: #b42348;
-  --selection: rgba(23, 107, 117, 0.16);
+  --bg: #e6e6e3;
+  --bg-sunk: #dcdcd9;
+  --bg-muted: #d4d4d1;
+  --surface: #f7f7f5;
+  --surface-2: #f2f2f0;
+  --raised: #fbfbfa;
+  --sidebar: #ececea;
+  --daybar: #dcdcd9;
+  --field: #ececea;
+  --ink: #0e0e0f;
+  --ink-2: #222224;
+  --ink-3: #47474a;
+  --ink-4: #58585c;
+  --line: #c4c4c1;
+  --line-strong: #0e0e0f;
+  --line-soft: #d6d6d3;
+  --accent: #0e0e0f;
+  --accent-ink: #0e0e0f;
+  --accent-soft: rgba(14, 14, 15, 0.07);
+  --accent-softer: rgba(14, 14, 15, 0.04);
+  --accent-contrast: #f7f7f5;
+  --note: #47474a;
+  --hot: #8c2613;
+  --hot-soft: rgba(140, 38, 19, 0.08);
+  --amber: #8a6a2c;
+  --amber-ink: #6e5422;
+  --amber-soft: rgba(138, 106, 44, 0.1);
+  --ok: #2f6b4f;
+  --ok-soft: rgba(47, 107, 79, 0.1);
+  --ok-ink: #285c44;
+  --rank-1: #0e0e0f;
+  --rank-2: #3a3a3d;
+  --rank-3: #58585c;
+  --rank-rest: #77777b;
+  --shadow-card: none;
+  --shadow-card-hover: 0 3px 0 rgba(14, 14, 15, 0.9);
+  --shadow-soft: 0 10px 24px -12px rgba(14, 14, 15, 0.35);
+  --shadow-thumb: 0 1px 2px rgba(14, 14, 15, 0.12);
+  --shadow-pop: 0 18px 40px -12px rgba(14, 14, 15, 0.4);
+  --prose-ink: #1b1b1d;
+  --code-bg: #efefed;
+  --code-keyword: #0e0e0f;
+  --code-string: #3a3a3d;
+  --code-number: #58585c;
+  --code-title: #0e0e0f;
+  --code-variable: #47474a;
+  --code-meta: #77777b;
+  --selection: rgba(14, 14, 15, 0.14);
 }
 
 @media (min-width: 961px) {
@@ -146,54 +155,54 @@
 
 [data-theme="dark"] {
   color-scheme: dark;
-  --bg: #13191c;
-  --bg-sunk: #182024;
-  --bg-muted: #202a2f;
-  --surface: #1a2226;
-  --surface-2: #1d272b;
-  --raised: #202a2f;
-  --sidebar: #161e21;
-  --daybar: #182024;
+  --bg: #19191a;
+  --bg-sunk: #141415;
+  --bg-muted: #242426;
+  --surface: #202022;
+  --surface-2: #1d1d1f;
+  --raised: #27272a;
+  --sidebar: #161617;
+  --daybar: #141415;
   --field: rgba(255, 255, 255, 0.06);
-  --ink: #e7eceb;
-  --ink-2: #d2dada;
-  --ink-3: #a5b0b3;
-  --ink-4: #89979d;
-  --line: rgba(255, 255, 255, 0.08);
-  --line-strong: rgba(255, 255, 255, 0.12);
-  --line-soft: rgba(255, 255, 255, 0.06);
-  --accent: #12ccd8;
-  --accent-ink: #2ce2e8;
-  --accent-soft: rgba(18, 204, 216, 0.12);
-  --accent-softer: rgba(18, 204, 216, 0.06);
-  --accent-contrast: #000000;
-  --note: #8fb8a8;
-  --hot: #d86a52;
-  --hot-soft: rgba(216, 106, 82, 0.12);
+  --ink: #ededeb;
+  --ink-2: #d8d8d6;
+  --ink-3: #ababa9;
+  --ink-4: #9c9c9a;
+  --line: rgba(255, 255, 255, 0.12);
+  --line-strong: #ededeb;
+  --line-soft: rgba(255, 255, 255, 0.07);
+  --accent: #ededeb;
+  --accent-ink: #ffffff;
+  --accent-soft: rgba(237, 237, 235, 0.1);
+  --accent-softer: rgba(237, 237, 235, 0.05);
+  --accent-contrast: #111112;
+  --note: #ababa9;
+  --hot: #ffa592;
+  --hot-soft: rgba(255, 165, 146, 0.12);
   --amber: #d3b26a;
   --amber-ink: #d3b26a;
   --amber-soft: rgba(211, 178, 106, 0.12);
-  --ok: #5fc79a;
-  --ok-soft: rgba(95, 199, 154, 0.12);
-  --ok-ink: #7fd1ad;
-  --rank-1: #d86a52;
-  --rank-2: #d18a5e;
-  --rank-3: #d3b26a;
-  --rank-rest: #7b869a;
+  --ok: #6fc79f;
+  --ok-soft: rgba(111, 199, 159, 0.12);
+  --ok-ink: #8fd4b4;
+  --rank-1: #ededeb;
+  --rank-2: #c4c4c2;
+  --rank-3: #9e9e9c;
+  --rank-rest: #7d7d7b;
   --shadow-card: none;
-  --shadow-card-hover: none;
-  --shadow-soft: 0 6px 18px rgba(0, 0, 0, 0.35);
+  --shadow-card-hover: 0 3px 0 rgba(237, 237, 235, 0.85);
+  --shadow-soft: 0 10px 24px -10px rgba(0, 0, 0, 0.6);
   --shadow-thumb: 0 1px 2px rgba(0, 0, 0, 0.45);
-  --shadow-pop: 0 16px 40px rgba(0, 0, 0, 0.45);
-  --prose-ink: #d7dfdf;
-  --code-bg: #10151c;
-  --code-keyword: #78dce8;
-  --code-string: #a9dc76;
-  --code-number: #ffd866;
-  --code-title: #ab9df2;
-  --code-variable: #fc9867;
-  --code-meta: #ff6188;
-  --selection: rgba(18, 204, 216, 0.22);
+  --shadow-pop: 0 18px 40px -10px rgba(0, 0, 0, 0.6);
+  --prose-ink: #dcdcda;
+  --code-bg: #141415;
+  --code-keyword: #ededeb;
+  --code-string: #c4c4c2;
+  --code-number: #ababa9;
+  --code-title: #ffffff;
+  --code-variable: #c4c4c2;
+  --code-meta: #929290;
+  --selection: rgba(237, 237, 235, 0.2);
 }
 
 @layer base {
@@ -213,6 +222,16 @@
   }
   ::selection {
     background: var(--selection);
+  }
+  /* Page titles read as magazine heads: condensed Archivo, upper case. */
+  h1 {
+    font-family: var(--font-display);
+    font-stretch: 72%;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+    line-height: 0.95;
+    text-wrap: balance;
   }
   :focus-visible {
     outline: 2px solid var(--accent);
@@ -441,6 +460,7 @@
  */
 .prose {
   color: var(--prose-ink);
+  font-family: var(--font-serif);
   font-size: 17px;
   line-height: 1.8;
   letter-spacing: 0.012em;
@@ -573,4 +593,300 @@
    the archive column is halfway between the site sidebar and white. */
 :root:not([data-theme="dark"]) body:has(.report-shell) {
   background: color-mix(in srgb, var(--bg) 60%, var(--surface));
+}
+
+/* ---------------------------------------------------------------------------
+   Magazine front page (features/magazine): the masthead screen, the covers of
+   the latest issues, the booklet that opens into an issue, the masthead at the
+   foot. Positions move with scroll through inline transforms only.
+   --------------------------------------------------------------------------- */
+.mag-intro {
+  position: relative;
+  height: calc(210 * var(--mag-vh));
+  --mag-vh: calc((100dvh - var(--mag-bottom)) / 100);
+  --mag-bottom: calc(64px + env(safe-area-inset-bottom));
+}
+.mag-outro {
+  position: relative;
+  height: calc(150 * var(--mag-vh));
+  margin-top: 48px;
+  --mag-vh: calc((100dvh - var(--mag-bottom)) / 100);
+  --mag-bottom: calc(64px + env(safe-area-inset-bottom));
+}
+@media (min-width: 961px) {
+  .mag-intro, .mag-outro { --mag-bottom: 24px; }
+  .mag-intro { margin-top: -24px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mag-intro, .mag-outro { height: calc(100 * var(--mag-vh)); }
+  .mag-hint i { animation: none; }
+}
+.mag-stage {
+  position: sticky;
+  top: 0;
+  height: calc(100 * var(--mag-vh));
+  overflow: hidden;
+  color: var(--ink);
+}
+.mag-rings {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.14;
+  color: var(--ink);
+  transform-origin: 70% 45%;
+  will-change: transform, opacity;
+  pointer-events: none;
+}
+.mag-rings-center { transform-origin: 50% 50%; }
+.mag-mast {
+  position: absolute;
+  left: 0;
+  top: 0;
+  margin: 0;
+  width: max-content;
+  transform-origin: 0 0;
+  will-change: transform;
+  white-space: nowrap;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 62%;
+  line-height: 0.8;
+  letter-spacing: -0.035em;
+  text-transform: uppercase;
+  color: var(--ink);
+  pointer-events: none;
+}
+.mag-mast span { display: block; }
+.mag-strip, .mag-ostrip {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 5px 0;
+  border-top: 3px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  will-change: transform, opacity;
+}
+.mag-ostrip {
+  top: auto;
+  bottom: 16px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  row-gap: 4px;
+  opacity: 0;
+}
+.mag-ostrip span:nth-child(2) { text-align: center; }
+.mag-ostrip span:nth-child(3) { text-align: right; }
+.mag-ostrip .mag-credit { grid-column: 1 / -1; text-transform: none; letter-spacing: 0; color: var(--ink-3); border-top: 1px solid var(--line); padding-top: 4px; }
+@media (max-width: 640px) {
+  .mag-ostrip { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .mag-ostrip span:nth-child(2) { display: none; }
+}
+.mag-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  translate: -50% 0;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-4);
+}
+.mag-hint i {
+  width: 1px;
+  height: 34px;
+  background: currentColor;
+  transform-origin: top;
+  animation: mag-drip 1.8s ease-in-out infinite;
+}
+@keyframes mag-drip {
+  0% { transform: scaleY(0); }
+  50% { transform: scaleY(1); }
+  100% { transform: scaleY(1); opacity: 0; }
+}
+
+.mag-skip {
+  position: absolute;
+  right: 0;
+  bottom: 18px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  border-bottom: 1px solid currentColor;
+  z-index: 2;
+}
+.mag-skip:hover { color: var(--ink); }
+@media (max-width: 640px) { .mag-skip { bottom: auto; top: 12px; } }
+.mag-shelf {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: max(20px, 4%);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(12px, 2.4vw, 32px);
+  max-width: min(1080px, calc((100 * var(--mag-vh) - 150px) * 2.25 + 64px));
+  margin-inline: auto;
+}
+/* Phones: a shelf of covers to slide through sideways. */
+@media (max-width: 640px) {
+  .mag-shelf {
+    display: flex;
+    gap: 14px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    margin-inline: calc(-1 * var(--gutter-l)) calc(-1 * var(--gutter-r));
+    padding-inline: var(--gutter-l) var(--gutter-r);
+    padding-block: 8px 12px;
+  }
+  .mag-shelf::-webkit-scrollbar { display: none; }
+  .mag-shelf .mag-cover { flex: 0 0 min(64vw, calc((100 * var(--mag-vh) - 170px) * 0.75)); scroll-snap-align: center; }
+}
+.mag-cover {
+  position: relative;
+  display: block;
+  aspect-ratio: 3 / 4;
+  max-width: 100%;
+  background: #f7f7f5;
+  color: #0e0e0f;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.25), 0 18px 40px -18px rgba(0, 0, 0, 0.45);
+  will-change: transform, opacity;
+  transition: box-shadow 200ms;
+}
+.mag-cover:hover { box-shadow: 0 1px 0 rgba(0, 0, 0, 0.25), 0 26px 50px -18px rgba(0, 0, 0, 0.55); }
+.mag-cover:focus-visible { outline: 3px solid var(--ink); outline-offset: 4px; border-radius: 0; }
+.mag-cface {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  padding: 7% 7% 6%;
+  overflow: hidden;
+  container-type: inline-size;
+  background: #f7f7f5;
+  color: #0e0e0f;
+}
+.mag-cface img { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; opacity: 0.85; }
+.mag-cface > :not(img) { position: relative; }
+.mag-ctop {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 2px solid #0e0e0f;
+  background: #f7f7f5;
+  padding: 1cqw 1.6cqw 2cqw;
+  font-size: max(9px, 3.4cqw);
+}
+.mag-cname {
+  justify-self: start;
+  margin-top: 3%;
+  padding-right: 2cqw;
+  background: #f7f7f5;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 62%;
+  font-size: 22cqw;
+  line-height: 0.82;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  hyphens: auto;
+}
+.mag-clines {
+  align-self: end;
+  justify-self: start;
+  display: grid;
+  gap: 1.6cqw;
+  max-width: 90%;
+  padding: 3cqw 3cqw 2cqw 0;
+  background: #f7f7f5;
+  font-size: max(10px, 4.2cqw);
+  line-height: 1.2;
+}
+.mag-clines b {
+  font-family: var(--font-display);
+  font-stretch: 75%;
+  font-weight: 800;
+  font-size: max(12px, 6.4cqw);
+  line-height: 0.98;
+  text-transform: uppercase;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.mag-clines span { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+.mag-cfoot {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4%;
+  padding-top: 3%;
+  border-top: 1px solid #0e0e0f;
+  background: #f7f7f5;
+  font-size: max(9px, 3.2cqw);
+}
+
+/* The booklet opening into an issue (built and removed by openIssue). */
+.mag-book { position: fixed; z-index: 80; perspective: 2200px; pointer-events: none; }
+.mag-book > * { position: absolute; inset: 0; }
+.mag-leaf {
+  display: grid;
+  align-content: start;
+  gap: 4%;
+  padding: 8%;
+  background: #f7f7f5;
+  color: #0e0e0f;
+  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.5);
+  container-type: inline-size;
+}
+.mag-leaf-name {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 62%;
+  font-size: 15cqw;
+  line-height: 0.85;
+  text-transform: uppercase;
+  border-bottom: 3px solid #0e0e0f;
+  padding-bottom: 3%;
+}
+.mag-leaf .mono { font-size: 12px; }
+.mag-leaf ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2.4cqw; font-family: var(--font-serif); font-size: max(13px, 4cqw); line-height: 1.25; }
+.mag-leaf li { border-bottom: 1px solid #c9c9c6; padding-bottom: 1.6cqw; }
+.mag-shade { background: linear-gradient(90deg, rgba(0, 0, 0, 0.35), transparent 40%); opacity: 0; }
+.mag-lid { transform-origin: 0 50%; transform-style: preserve-3d; }
+.mag-lid > div { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.mag-lid-front .mag-cface { position: absolute; inset: 0; }
+.mag-lid-back {
+  transform: rotateY(180deg);
+  display: grid;
+  place-items: center;
+  padding: 10%;
+  background: #d9d9d6;
+  color: #0e0e0f;
+  font-family: var(--font-serif);
+  font-style: italic;
+  text-align: center;
+}
+
+.mag-section-head {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 62%;
+  font-size: clamp(44px, 6vw, 88px);
+  line-height: 0.82;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  border-top: 6px solid var(--ink);
+  padding-top: 10px;
 }

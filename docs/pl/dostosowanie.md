@@ -16,6 +16,10 @@ Wszystko, co dotyczy tego serwisu, siedzi w dwóch katalogach: `site/` (nazwa, t
 
 Logo i ikony serwisu. Nie używaj nazwy ani logo AIHOT; wzmianka o frameworku w stopce jest w porządku. Napisy na winietach wydań („OPEX DZIENNIK” itd.) generuje `node scripts/nameplates.ts`.
 
+## Okładki wydań: `site/covers.ts` i `site/covers/`
+
+Strona główna otwiera się winietą i okładkami najnowszego dziennika, tygodnika i miesięcznika; te same okładki są obrazkami udostępniania wydań. Okładka to raster drukarski zdjęcia-motywu w kręgach (styl Fangora), liczony z wydania, więc każdy numer wygląda trochę inaczej. Dziennik bierze motyw kategorii swojego pierwszego działu, tygodnik i miesięcznik swój domyślny (`COVER_DEFAULTS`). Motyw to zdjęcie w skali szarości 240×320 px w `site/covers/` i wpis w `COVER_MOTIFS` (plik, opis, autor, adres zdjęcia); autorzy pojawiają się w stopce strony głównej. Zmiana rysunku okładki wymaga podniesienia `COVER_TEMPLATE_VERSION` w `packages/backend/src/media/cover.ts`, żeby przeglądarki pobrały nową wersję.
+
 ## Regulamin i prywatność: `site/pages/`
 
 `terms.md` i `privacy.md` to **szablony**. Przed publicznym udostępnieniem wpisz prowadzącego serwis, kontakt i datę obowiązywania oraz sprawdź treść (RODO: serwis zapisuje opinie z formularza, w tym opcjonalny e-mail i zrzut ekranu).

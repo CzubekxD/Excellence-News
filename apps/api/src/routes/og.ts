@@ -9,7 +9,9 @@ import { findTopic, TOPIC_GROUPS, TOPICS } from "@aihot/backend/publication/topi
 import { loadStoryDetail, resolveStory } from "@aihot/backend/publication/stories";
 import { ogEtag, renderOg, type OgCard } from "@aihot/backend/media/og";
 import { posterEtag, renderPoster, type Poster } from "@aihot/backend/media/poster";
-import { CARDS, count, ITEM_COPY, REPORTS, withSubject } from "@aihot/site";
+import { coverEtag, coverRasterSvg, COVER_TEMPLATE_VERSION, renderCoverCard } from "@aihot/backend/media/cover";
+import { issueCoverCard, issueMotif } from "@aihot/backend/publication/covers";
+import { CARDS, count, ITEM_COPY, REPORTS } from "@aihot/site";
 import { config } from "@aihot/backend/config";
 
 /** The pages' share cards: the site's texts, and the topic count of the topic list. */
@@ -31,11 +33,13 @@ async function send(req: FastifyRequest, reply: FastifyReply, card: OgCard, maxA
   return reply.type("image/png").send((await renderOg(card)).png);
 }
 
+function matches(req: FastifyRequest, tag: string) {
+  return String(req.headers["if-none-match"] ?? "").split(",").some((t) => t.trim().replace(/^W\//, "") === tag);
+}
+
 function notFound(reply: FastifyReply) {
   return reply.code(404).header("Cache-Control", "public, max-age=300").type("text/plain; charset=utf-8").send("Not found");
 }
-
-const REPORT_NAMES: Record<ReportKind, string> = { daily: withSubject("Dziennik"), weekly: withSubject("Tygodnik"), monthly: withSubject("Miesięcznik") };
 
 export function registerOg(app: FastifyInstance) {
   app.get("/og/site.png", (req, reply) => send(req, reply, PAGES.site!, 86400));
@@ -76,17 +80,32 @@ export function registerOg(app: FastifyInstance) {
     return reply.type("image/png").send((await renderPoster(poster)).png);
   });
 
+  // An issue's share card: its cover beside the headline.
   app.get("/og/reports/:kind/:file", async (req, reply) => {
     const { kind, file } = req.params as { kind: string; file: string };
     if (!["daily", "weekly", "monthly"].includes(kind) || !file.endsWith(".png")) return notFound(reply);
     const r = await loadReport(kind as ReportKind, file.slice(0, -4));
     if (!r) return notFound(reply);
-    return send(req, reply, {
-      kicker: `${REPORT_NAMES[r.kind]} · ${r.key}`,
-      title: r.lead?.title ?? r.title,
-      subtitle: r.lead?.leadParagraph ?? r.overview,
-      meta: `${count(r.sections.reduce((n, s) => n + s.items.length, 0), REPORTS.shareUnit)} · ok. ${r.readingMinutes} min czytania`,
-    }, 3600, CONTENT_IMAGE_CACHE);
+    const card = issueCoverCard(r);
+    const tag = `"cover-${coverEtag(card)}"`;
+    reply.header("ETag", tag).header("Cache-Control", CONTENT_IMAGE_CACHE);
+    if (matches(req, tag)) return reply.code(304).send();
+    return reply.type("image/png").send((await renderCoverCard(card)).png);
+  });
+
+  // An issue's cover picture for the website (the halftone alone). It depends only on the issue and the
+  // drawing, so a versioned address may be kept long.
+  app.get("/og/covers/:kind/:file", async (req, reply) => {
+    const { kind, file } = req.params as { kind: string; file: string };
+    if (!["daily", "weekly", "monthly"].includes(kind) || !file.endsWith(".svg")) return notFound(reply);
+    const r = await loadReport(kind as ReportKind, file.slice(0, -4));
+    if (!r) return notFound(reply);
+    const motif = issueMotif(r);
+    const tag = `"raster-${COVER_TEMPLATE_VERSION}-${motif.key}"`;
+    const versioned = (req.query as { v?: string }).v === COVER_TEMPLATE_VERSION;
+    reply.header("ETag", tag).header("Cache-Control", versioned ? "public, max-age=86400, s-maxage=604800" : CONTENT_IMAGE_CACHE);
+    if (matches(req, tag)) return reply.code(304).send();
+    return reply.type("image/svg+xml").header("X-Content-Type-Options", "nosniff").send(await coverRasterSvg(r.kind, r.key, motif));
   });
 
   app.get("/og/topics/:file", async (req, reply) => {

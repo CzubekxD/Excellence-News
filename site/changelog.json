@@ -1,6 +1,17 @@
 {
-  "latestVersion": "2026-10-04T18:00",
+  "latestVersion": "2026-10-29T22:00",
   "releases": [
+    {
+      "date": "2026-10-29",
+      "time": "22:00",
+      "kind": "nowość",
+      "title": "Nowy wygląd: stary magazyn",
+      "body": [
+        "Serwis wygląda teraz jak stare czasopismo: czerń, biel i szarość, kroje Archivo i Newsreader, ostre linie zamiast zaokrągleń.",
+        "Strona główna zaczyna się winietą, która przy przewijaniu zwija się do rogu, a w jej miejsce wjeżdżają okładki najnowszego dziennika, tygodnika i miesięcznika. Okładka otwiera się jak zeszyt i prowadzi do wydania.",
+        "Każde wydanie ma własną okładkę: raster drukarski zdjęcia w kręgach. Ta sama okładka pokazuje się przy udostępnianiu linku do wydania."
+      ]
+    },
     {
       "date": "2026-10-04",
       "time": "18:00",
