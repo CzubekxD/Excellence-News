@@ -36,7 +36,8 @@ test('mutable content never authorizes a reader to reuse stale data beyond the w
     '/api/v1/agent/daily/2099-10-04','/api/v1/agent/weekly/2099-W40',
     '/feed.xml','/feed/full.xml','/feed/all.xml','/feed/daily.xml','/feed/weekly.xml','/feed/monthly.xml',
     `/items/${id}/markdown`, `/og/items/${id}.png`, `/og/posters/${id}.png`,
-    '/og/reports/daily/2099-10-04.png','/og/reports/weekly/2099-W40.png','/og/reports/monthly/2099-10.png'];
+    '/og/reports/daily/2099-10-04.png','/og/reports/weekly/2099-W40.png','/og/reports/monthly/2099-10.png',
+    '/og/covers/daily/2099-10-04.svg','/api/site/covers'];
   const failures:string[]=[];
   for (const url of paths) {
     const response=await app.inject({method:'GET',url});

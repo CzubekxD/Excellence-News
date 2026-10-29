@@ -2,7 +2,8 @@
 // Reads through the same public read layer as v1; no cookies are read or set.
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { isCategoryKey, isChannelKey, type CategoryKey, type ChannelKey } from "@aihot/contracts/taxonomy";
-import type { ReportIndexResponse, ReportLatestPage, ReportNavigationResponse, SiteContact } from "@aihot/contracts/site";
+import type { IssueCoversResponse, ReportIndexResponse, ReportLatestPage, ReportNavigationResponse, SiteContact } from "@aihot/contracts/site";
+import { latestCovers } from "@aihot/backend/publication/covers";
 import { InvalidCursorError } from "@aihot/backend/lib/cursor";
 import { exportMarkdown, loadItemDetail } from "@aihot/backend/publication/detail";
 import { loadPool, SearchBusyError } from "@aihot/backend/publication/pool";
@@ -160,6 +161,12 @@ export function registerSite(app: FastifyInstance) {
     const data = await loadStoryDetail(found.storyId);
     if (!data) return sendProblem(req, reply, { status: 404, code: "not_found", detail: "story not public", cacheControl: "public, max-age=60" });
     return sendJsonWithEtag(req, reply, data, { etagPrefix: "story", cacheControl: "public, max-age=60, s-maxage=60" });
+  }));
+
+  // The front page's covers: the latest daily, weekly and monthly in one request.
+  app.get("/api/site/covers", siteHandler(async (req, reply) => {
+    const body: IssueCoversResponse = { covers: await latestCovers() };
+    return sendJsonWithEtag(req, reply, body, { etagPrefix: "covers", cacheControl: "public, max-age=60, s-maxage=60" });
   }));
 
   app.get("/api/site/reports/:kind", siteHandler(async (req, reply) => {

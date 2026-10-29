@@ -8,3 +8,7 @@ Licencja: SIL Open Font License, Version 1.1 (OFL-1.1), https://openfontlicense.
 
 OFL pozwala osadzać i rozpowszechniać czcionkę razem z oprogramowaniem; wymaga zachowania
 informacji o prawach autorskich i licencji (ten plik). Czcionki nie wolno sprzedawać osobno.
+
+Pliki archivo-narrow-700-latin.woff i archivo-narrow-700-latin-ext.woff to czcionka Archivo Narrow
+Bold (Omnibus-Type, SIL Open Font License 1.1, pełny tekst w LICENSE-archivo-narrow), używana do
+nagłówków okładek wydań na obrazkach udostępniania. Źródło plików: pakiet npm @fontsource/archivo-narrow 5.3.0.

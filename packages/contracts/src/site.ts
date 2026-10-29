@@ -310,6 +310,31 @@ export interface ReportDetail {
   next: string | null;
 }
 
+/** An issue's cover on the front page: the latest daily, weekly and monthly. */
+export interface IssueCover {
+  kind: ReportKind;
+  key: string;
+  /** "Dziennik", "Tygodnik", "Miesięcznik". */
+  name: string;
+  issueNumber: number;
+  /** The issue's date or period as readers say it ("29.10.2026", "19–25.10.2026", "Październik 2026"). */
+  dateLabel: string;
+  headline: string;
+  /** Up to two more headlines of the issue, for the cover lines. */
+  lines: string[];
+  count: number;
+  readingMinutes: number;
+  /** The issue's page. */
+  href: string;
+  /** The cover's halftone picture (SVG) and what it shows. */
+  raster: string;
+  alt: string;
+}
+
+export interface IssueCoversResponse {
+  covers: IssueCover[];
+}
+
 export interface ReportIndexEntry {
   key: string;
   issueNumber: number;
