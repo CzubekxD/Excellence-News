@@ -31,6 +31,10 @@ function Masthead({ report, index }: { report: ReportDetail; index: ReportNaviga
   const label = KIND_LABEL[report.kind];
   return (
     <header className="pt-5 lg:pt-0">
+      <Link viewTransition to="/" className={`${LINK} mb-3 text-[13px] text-ink-3`}>
+        <IconArrowLeft size={13} />
+        Strona główna
+      </Link>
       <div className="flex items-center justify-between gap-4 text-[12px] text-ink-4">
         <span className="num">{dateLine(report.kind, report.key)}</span>
         <span className="hidden tracking-[0.3em] @[640px]:inline">{MOTTO[report.kind]}</span>
