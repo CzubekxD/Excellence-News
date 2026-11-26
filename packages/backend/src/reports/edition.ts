@@ -1,5 +1,5 @@
 // What an issue carries. A period carries its selected reports: public, not backfill, attributed by
-// the later of arrival and release, and not released long after they happened. The daily is computed
+// the later of arrival and release, and not released long after they happened (RELEASE_GRACE_DAYS). The daily is computed
 // by rule, without a model judging anything: one entry per event, its most authoritative report with
 // the event's other developments listed under it; an event an earlier issue covered comes back only
 // with a new fact; an event with an official post and three or more independent participants is
@@ -32,6 +32,12 @@ const FOLLOW_UP_SOURCES = 4;
 const COMMENTARY = new Set<string>(CATEGORIES.filter((c) => "commentary" in c).map((c) => c.key));
 /** Earlier issues a daily remembers. */
 const MEMORY_DAYS = 7;
+/**
+ * How long after its arrival a selected report still enters the issue of its release. Grouping waits on
+ * model calls and has held selection back by up to eleven days in deployment; a report released later
+ * than this is old news. Backfills (found long after publication) never enter an issue.
+ */
+const RELEASE_GRACE_DAYS = 14;
 
 export interface ReportEntry {
   itemId: string;
@@ -97,8 +103,8 @@ const REPORT_FIELDS = sql`p.article_id AS id, p.title, p.summary, p.url, p.categ
 /**
  * The selected reports a period [start, end) carries. Each counts once, in the period readers first saw
  * it: by arrival, or by release when that came later (a release after the cutoff belongs to the next
- * issue, never to one already out). A report that arrived more than a day before the period began and
- * was released only within it is old news there.
+ * issue, never to one already out). A report that arrived more than RELEASE_GRACE_DAYS before the period
+ * began and was released only within it is old news there.
  */
 export async function periodReports(start: Date, end: Date): Promise<ReportRow[]> {
   return sql.begin("isolation level read committed", async (tx) => {
@@ -116,7 +122,7 @@ export async function periodReports(start: Date, end: Date): Promise<ReportRow[]
           (p.visible_after <= p.timeline_at AND p.timeline_at >= ${start} AND p.timeline_at < ${end})
           OR (p.visible_after > p.timeline_at AND p.visible_after >= ${start} AND p.visible_after < ${end})
         )
-        AND p.timeline_at >= ${start}::timestamptz - interval '24 hours'`;
+        AND p.timeline_at >= ${start}::timestamptz - make_interval(days => ${RELEASE_GRACE_DAYS})`;
   });
 }
 

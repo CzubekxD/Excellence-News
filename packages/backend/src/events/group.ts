@@ -20,7 +20,7 @@ import { siteDate, siteMidnight } from "@aihot/contracts/time";
 import { sql, type Db, type Tx } from "../db.ts";
 import { newShortId, newUuid } from "../lib/ids.ts";
 import { chatJson } from "../providers/llm.ts";
-import { completeReceipt } from "../providers/receipts.ts";
+import { completeReceipt, ProviderRejectedError } from "../providers/receipts.ts";
 import { embeddingsAvailable } from "../providers/embeddings.ts";
 import { isHistorical, STALE_ON_DISCOVERY_MS } from "../content/materials.ts";
 import { enqueue, QUEUES, shutdownSignal } from "../jobs/queue.ts";
@@ -251,8 +251,11 @@ export async function groupArticle(articleId: string, opts: GroupOptions = {}): 
   } catch (error) {
     const receiptId = error && typeof error === 'object' && 'receiptId' in error && typeof error.receiptId === 'number' ? error.receiptId : null;
     // A late failed model call must not undo an editor's completed decision, or a fact already
-    // committed before an optional downstream operation failed. Shutdown leaves work pending.
-    await sql`UPDATE articles SET grouping_status = ${shutdownSignal.signal.aborted ? 'pending' : 'failed'},
+    // committed before an optional downstream operation failed. Shutdown leaves work pending, and so
+    // does a provider that is overloaded or down (429, 5xx): a busy model answered 503 for days in
+    // deployment, so the ungrouped sweep (operations/recover.ts) tries again after the job's own retries.
+    const later = shutdownSignal.signal.aborted || (error instanceof ProviderRejectedError && error.retryable);
+    await sql`UPDATE articles SET grouping_status = ${later ? 'pending' : 'failed'},
       grouped_at = NULL, grouping_receipt_id = ${receiptId}, grouping_error = ${String(error).slice(0, 2000)}
       WHERE id = ${articleId} AND revision = ${revision} AND grouping_status <> 'complete' AND ${!(error instanceof GroupingSupersededError)}`;
     await publishArticle(articleId);
