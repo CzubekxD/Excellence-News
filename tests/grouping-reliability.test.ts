@@ -1,8 +1,9 @@
 // Failure modes: unavailable identity requests must remain undecided, an incomplete model response
 // must not become "unrelated", and releasing an unknown receipt must resume the exact grouping job
 // that a native TimeoutError failed. Lost pending jobs must recover without reviving terminal
-// failures or buying the same request indefinitely.
-import { embeddingsStub, gate, stub, tag } from "./setup.ts";
+// failures or buying the same request indefinitely; a full budget or a busy provider waits, but not
+// for reports over two days old.
+import { embeddingsStub, gate, Reply, stub, tag } from "./setup.ts";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { after, before, test } from "node:test";
@@ -18,8 +19,9 @@ import { publishArticle } from "@aihot/backend/publication/publish";
 
 const T = tag();
 const sourceId = `group-reliability-${T}`;
-let response: "complete" | "missing" = "complete";
+let response: "complete" | "missing" | "overloaded" = "complete";
 const provider = await stub((_hit, request) => {
+  if (response === "overloaded") return new Reply(503, { error: { code: 503, message: "This model is currently experiencing high demand.", status: "UNAVAILABLE" } });
   const body = JSON.parse(request.body);
   const text = body.messages[1].content as string;
   if (text.includes("【Tekst A】")) return { choices: [{ message: { content: JSON.stringify({ a: "发布", b: "发布", relation: "SAME_OCCURRENCE", difference: "", confidence: 1 }) } }] };
@@ -127,6 +129,44 @@ test("a lost pending grouping job is repaired once, but a terminal failure waits
   await detachFromFact(failed, "verified independent", "test");
   const [manual] = await sql`SELECT grouping_status,grouping_error FROM articles WHERE id=${failed}`;
   assert.deepEqual({ ...manual }, { grouping_status: "complete", grouping_error: null });
+});
+
+test("an overloaded provider leaves grouping pending, and the sweep tries it again", async () => {
+  const id = await report("overloaded");
+  await sql`UPDATE articles SET created_at=now()-interval '5 minutes' WHERE id=${id}`;
+  response = "overloaded";
+  try {
+    await assert.rejects(groupArticle(id), /HTTP 503/);
+  } finally {
+    response = "complete";
+  }
+  const [waiting] = await sql`SELECT grouping_status,grouping_error FROM articles WHERE id=${id}`;
+  assert.equal(waiting!.grouping_status, "pending");
+  assert.match(String(waiting!.grouping_error), /HTTP 503/);
+  assert.equal((await sweepUngrouped()).enqueued, 1);
+  const boss = await getBoss();
+  const [job] = await boss.fetch(QUEUES.group);
+  assert.equal((job!.data as { articleId: string }).articleId, id);
+  assert.equal((await groupArticle(id)).verdict, "same-fact");
+  await boss.complete(QUEUES.group, job!.id);
+  const [done] = await sql`SELECT grouping_status FROM articles WHERE id=${id}`;
+  assert.equal(done!.grouping_status, "complete");
+});
+
+test("a full budget leaves grouping pending, and the sweep leaves reports over two days old", async () => {
+  const id = await report("budget");
+  const budgets = await sql<{ service: string; per_minute: number }[]>`SELECT service,per_minute FROM budgets`;
+  await sql`UPDATE budgets SET per_minute=0`;
+  try {
+    await assert.rejects(groupArticle(id), /Budget for \S+ exhausted/);
+  } finally {
+    for (const b of budgets) await sql`UPDATE budgets SET per_minute=${b.per_minute} WHERE service=${b.service}`;
+  }
+  const [waiting] = await sql`SELECT grouping_status FROM articles WHERE id=${id}`;
+  assert.equal(waiting!.grouping_status, "pending");
+  await sql`UPDATE articles SET created_at=now()-interval '3 days' WHERE id=${id}`;
+  await sweepUngrouped();
+  assert.equal((await sql`SELECT 1 FROM pgboss.job WHERE name=${QUEUES.group} AND data->>'articleId'=${id}`).length, 0);
 });
 
 
