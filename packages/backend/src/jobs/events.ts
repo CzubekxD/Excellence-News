@@ -20,13 +20,17 @@ export async function registerEventJobs(boss: PgBoss) {
   await work(boss, QUEUES.digest, { localConcurrency: 3, pollingIntervalSeconds: 5 }, ({ storyId }) => composeStoryDigest(storyId));
 }
 
-/** Missing jobs are repaired; terminal failures need a receipt release or an explicit rerun. */
+/**
+ * Missing jobs are repaired; terminal failures need a receipt release or an explicit rerun. Reports more
+ * than two days old are left as they are: none of them can enter an issue any more (reports/edition.ts),
+ * and the model calls go to new ones.
+ */
 export async function sweepUngrouped(): Promise<{ enqueued: number }> {
   await ensureQueue(QUEUES.group);
   return sql.begin(async (tx) => {
     const rows = await tx<{ id: string }[]>`
       SELECT a.id FROM articles a JOIN sources s ON s.id = a.source_id
-      WHERE a.grouping_status = 'pending' AND a.created_at < now() - interval '3 minutes'
+      WHERE a.grouping_status = 'pending' AND a.created_at < now() - interval '3 minutes' AND a.created_at > now() - interval '2 days'
         AND s.participation_mode = 'editorial' AND a.processing_state = 'analyzed' AND EXISTS (
           SELECT 1 FROM analyses an WHERE an.article_id = a.id AND an.input_revision = a.revision AND an.relevance = 'pass')
         AND NOT EXISTS (SELECT 1 FROM pgboss.job j WHERE j.name = ${QUEUES.group}

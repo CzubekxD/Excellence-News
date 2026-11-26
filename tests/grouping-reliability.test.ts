@@ -1,7 +1,8 @@
 // Failure modes: unavailable identity requests must remain undecided, an incomplete model response
 // must not become "unrelated", and releasing an unknown receipt must resume the exact grouping job
 // that a native TimeoutError failed. Lost pending jobs must recover without reviving terminal
-// failures or buying the same request indefinitely.
+// failures or buying the same request indefinitely; a full budget or a busy provider waits, but not
+// for reports too old for any issue.
 import { embeddingsStub, gate, Reply, stub, tag } from "./setup.ts";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
@@ -150,6 +151,22 @@ test("an overloaded provider leaves grouping pending, and the sweep tries it aga
   await boss.complete(QUEUES.group, job!.id);
   const [done] = await sql`SELECT grouping_status FROM articles WHERE id=${id}`;
   assert.equal(done!.grouping_status, "complete");
+});
+
+test("a full budget leaves grouping pending, and the sweep leaves reports over two days old", async () => {
+  const id = await report("budget");
+  const budgets = await sql<{ service: string; per_minute: number }[]>`SELECT service,per_minute FROM budgets`;
+  await sql`UPDATE budgets SET per_minute=0`;
+  try {
+    await assert.rejects(groupArticle(id), /Budget for \S+ exhausted/);
+  } finally {
+    for (const b of budgets) await sql`UPDATE budgets SET per_minute=${b.per_minute} WHERE service=${b.service}`;
+  }
+  const [waiting] = await sql`SELECT grouping_status FROM articles WHERE id=${id}`;
+  assert.equal(waiting!.grouping_status, "pending");
+  await sql`UPDATE articles SET created_at=now()-interval '3 days' WHERE id=${id}`;
+  await sweepUngrouped();
+  assert.equal((await sql`SELECT 1 FROM pgboss.job WHERE name=${QUEUES.group} AND data->>'articleId'=${id}`).length, 0);
 });
 
 
