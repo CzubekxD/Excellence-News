@@ -22,8 +22,7 @@ export async function registerEventJobs(boss: PgBoss) {
 
 /**
  * Missing jobs are repaired; terminal failures need a receipt release or an explicit rerun. Reports more
- * than two days old are left as they are: none of them can enter an issue any more (reports/edition.ts),
- * and the model calls go to new ones.
+ * than two days old are left as they are: when the model budget is short, its calls go to new ones.
  */
 export async function sweepUngrouped(): Promise<{ enqueued: number }> {
   await ensureQueue(QUEUES.group);

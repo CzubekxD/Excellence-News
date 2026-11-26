@@ -8,6 +8,7 @@
 import { useState, type ReactNode } from "react";
 import { Link } from "react-router";
 import type { ReportCitation, ReportDetail, ReportNavigationEntry } from "@aihot/contracts/site";
+import { addDays, siteDate } from "@aihot/contracts/time";
 import { REPORTS, SITE, withSubject } from "@aihot/site";
 import { Badge } from "../../components/ui/Badge";
 import { IconArrowLeft, IconArrowRight, IconArrowUpRight } from "../../components/icons";
@@ -449,6 +450,8 @@ export function reportOutline(report: ReportDetail): OutlineEntry[] {
 
 export function ReportPaper({ report, index }: { report: ReportDetail; index: ReportNavigationEntry[] }) {
   const daily = report.kind === "daily";
+  // A daily dates only a report that came out before its day: one selected late (edition.ts).
+  const dated = (c: ReportCitation) => !daily || (!!c.publishedAt && siteDate(c.publishedAt) < addDays(report.key, -1));
   const leadStory = leadStoryOf(report);
   const pages = pagesOf(report, leadStory);
   const count = pages.reduce((sum, p) => sum + p.items.length, 0) + (leadStory ? 1 : 0);
@@ -472,7 +475,7 @@ export function ReportPaper({ report, index }: { report: ReportDetail; index: Re
               {p.summary}
             </p>
           )}
-          <Rows items={p.items}>{(c, cell) => <Story key={`${p.id}-${keyOf(c)}`} c={c} dated={!daily} className={cell} />}</Rows>
+          <Rows items={p.items}>{(c, cell) => <Story key={`${p.id}-${keyOf(c)}`} c={c} dated={dated(c)} className={cell} />}</Rows>
         </SectionPage>
       ))}
 
@@ -496,6 +499,7 @@ export function ReportPaper({ report, index }: { report: ReportDetail; index: Re
                     <span className="text-ink">{f.title}</span>
                   )}
                   {f.available && <span className="ml-2 text-[12px] text-ink-4">{f.sourceName}</span>}
+                  {f.available && daily && dated(f) && f.publishedAt && <span className="num ml-2 text-[12px] text-ink-4">{shortDay(f.publishedAt)}</span>}
                   {f.available && f.followUp && <Badge className="ml-2 align-[1px]" title={`Dziennik z ${monthDay(f.followUp)} już o tym pisał, tu jest nowy etap`}>dalszy ciąg</Badge>}
                 </span>
               </li>

@@ -92,6 +92,14 @@ test("reports assign delayed and boundary releases to the period readers first s
   assert.equal(items("2020-01-03").has(groupedLate), true);
 });
 
+test("a report selected a week after it came out enters the daily of its selection", async () => {
+  const late = await selected("week-late", editionAt("daily", "2020-02-10", -8 * 24 * 3600), editionAt("daily", "2020-02-10", -60));
+  const daily = new Set((await candidates(editionAt("daily", "2020-02-09"), editionAt("daily", "2020-02-10"))).map((c) => c.itemId));
+  assert.equal(daily.has(late), true);
+  const before = new Set((await candidates(editionAt("daily", "2020-02-08"), editionAt("daily", "2020-02-09"))).map((c) => c.itemId));
+  assert.equal(before.has(late), false);
+});
+
 /** Observe an actual PostgreSQL lock wait before advancing the clock or releasing the transaction. */
 async function waitForBlocked(blocker: number, operation: Promise<unknown>) {
   const deadline = performance.now() + 5_000;

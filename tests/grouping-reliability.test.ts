@@ -2,7 +2,7 @@
 // must not become "unrelated", and releasing an unknown receipt must resume the exact grouping job
 // that a native TimeoutError failed. Lost pending jobs must recover without reviving terminal
 // failures or buying the same request indefinitely; a full budget or a busy provider waits, but not
-// for reports too old for any issue.
+// for reports over two days old.
 import { embeddingsStub, gate, Reply, stub, tag } from "./setup.ts";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
